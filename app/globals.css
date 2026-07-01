@@ -1,26 +1,96 @@
+/* app/globals.css */
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+/* Définir les variables CSS pour le thème */
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Thème clair */
+    --bg-primary: #F8F6F3;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-input: #FAFAFA;
+    --text-primary: #29453E;
+    --text-secondary: #3C6C5F;
+    --text-muted: #6b8a7a;
+    --border-color: rgba(255, 196, 144, 0.2);
+    --border-hover: rgba(255, 196, 144, 0.5);
+    --shadow-color: rgba(60, 108, 95, 0.1);
+    --shadow-hover: rgba(60, 108, 95, 0.2);
+    
+    /* Couleurs de base */
+    --color-background: var(--bg-primary);
+    --color-foreground: var(--text-primary);
+  }
+}
+
+/* Thème sombre */
+.dark {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-card: #1e2a4a;
+  --bg-input: #2d3748;
+  --text-primary: #e2e8f0;
+  --text-secondary: #9DAE7A;
+  --text-muted: #a0aec0;
+  --border-color: rgba(60, 108, 95, 0.3);
+  --border-hover: rgba(60, 108, 95, 0.5);
+  --shadow-color: rgba(60, 108, 95, 0.2);
+  --shadow-hover: rgba(60, 108, 95, 0.3);
+  
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+}
+
+/* Classes utilitaires pour le thème */
+@layer utilities {
+  .bg-primary {
+    background-color: var(--bg-primary);
+  }
+  
+  .bg-secondary {
+    background-color: var(--bg-secondary);
+  }
+  
+  .bg-card {
+    background-color: var(--bg-card);
+  }
+  
+  .bg-input {
+    background-color: var(--bg-input);
+  }
+  
+  .text-primary {
+    color: var(--text-primary);
+  }
+  
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  
+  .text-muted {
+    color: var(--text-muted);
+  }
+  
+  .border-theme {
+    border-color: var(--border-color);
+  }
+  
+  .border-theme-hover {
+    border-color: var(--border-hover);
+  }
+  
+  .shadow-theme {
+    box-shadow: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -1px var(--shadow-color);
+  }
+  
+  .shadow-theme-hover {
+    box-shadow: 0 10px 15px -3px var(--shadow-hover), 0 4px 6px -2px var(--shadow-hover);
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
