@@ -1,3 +1,4 @@
+// components/AddPredictionForm.tsx - Version avec palette APP
 "use client";
 
 import { useState } from "react";
@@ -56,7 +57,7 @@ export default function AddPredictionForm({ fermes, userId }: AddPredictionFormP
     setLoading(false);
 
     if (res.success) {
-      setMessage({ type: "success", text: "Prédiction générée et enregistrée !" });
+      setMessage({ type: "success", text: "✅ Prédiction générée et enregistrée !" });
       setResultat("");
       setConfiance("");
     } else {
@@ -68,41 +69,43 @@ export default function AddPredictionForm({ fermes, userId }: AddPredictionFormP
   const SelectedIcon = selectedIcon;
 
   return (
-    <div className="w-full p-8 bg-[#FFF3DA] border border-[#FFC490]/30 rounded-2xl shadow-xl">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-10 h-10 rounded-xl bg-[#FFC490]/30 flex items-center justify-center text-[#3C6C5F] text-xl">
-          <FaMagic />
+    <div className="space-y-4">
+      {/* Header avec palette APP */}
+      <div className="flex items-center gap-3">
+        <div className="p-2.5 bg-[#DDF3E8] dark:bg-[#2a3f38] rounded-xl">
+          <FaMagic className="text-[#3C6C5F] dark:text-[#9DAE7A]" size={18} />
         </div>
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#29453E]">
+          <h3 className="text-lg font-bold text-[#29453E] dark:text-white">
             Générer une Prédiction
-          </h2>
-          <p className="text-xs text-[#3C6C5F]/70">
+          </h3>
+          <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60">
             Basée sur vos données agricoles
           </p>
         </div>
       </div>
 
-      <div className="my-4 p-3 rounded-xl bg-[#FFC490]/20 border border-[#FFC490]/40 text-xs text-[#29453E] flex items-start gap-2">
-        <FaLightbulb className="text-[#3C6C5F] mt-0.5 flex-shrink-0" />
+      {/* Info avec palette APP */}
+      <div className="p-3 bg-[#FFF3DA] dark:bg-[#2a3f38]/50 rounded-xl border border-[#FFC490]/30 dark:border-[#FFC490]/10 text-xs text-[#29453E] dark:text-[#9DAE7A] flex items-start gap-2">
+        <FaLightbulb className="mt-0.5 flex-shrink-0 text-[#D4A574]" />
         <span>L'IA analysera vos données de ferme pour générer une prédiction. Vous pouvez aussi saisir manuellement un résultat.</span>
       </div>
 
       <form onSubmit={handleGenerate} className="space-y-4">
         {/* Ferme */}
         <div>
-          <label className="block text-sm font-medium text-[#29453E] mb-1.5">
+          <label className="block text-sm font-medium text-[#29453E] dark:text-[#9DAE7A] mb-1.5">
             Ferme <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FaBuilding className="text-[#3C6C5F]" />
+              <FaBuilding className="text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40" />
             </div>
             <select
               required
               value={fermeId}
               onChange={(e) => setFermeId(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white border border-[#FFC490]/50 text-[#29453E] focus:ring-2 focus:ring-[#3C6C5F]/20 focus:border-[#3C6C5F] outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAFAFA] dark:bg-[#0d1a15] border border-[#FFC490]/20 dark:border-[#FFC490]/10 text-[#29453E] dark:text-white focus:ring-2 focus:ring-[#3C6C5F] focus:border-transparent outline-none transition-all"
             >
               {fermes.map((f) => (
                 <option key={f.id} value={f.id}>
@@ -115,18 +118,18 @@ export default function AddPredictionForm({ fermes, userId }: AddPredictionFormP
 
         {/* Type de prédiction */}
         <div>
-          <label className="block text-sm font-medium text-[#29453E] mb-1.5">
+          <label className="block text-sm font-medium text-[#29453E] dark:text-[#9DAE7A] mb-1.5">
             Type de prédiction <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <SelectedIcon className="text-[#3C6C5F]" />
+              <SelectedIcon className="text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40" />
             </div>
             <select
               required
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white border border-[#FFC490]/50 text-[#29453E] focus:ring-2 focus:ring-[#3C6C5F]/20 focus:border-[#3C6C5F] outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAFAFA] dark:bg-[#0d1a15] border border-[#FFC490]/20 dark:border-[#FFC490]/10 text-[#29453E] dark:text-white focus:ring-2 focus:ring-[#3C6C5F] focus:border-transparent outline-none transition-all"
             >
               {TYPES_PREDICTION.map((t) => {
                 const Icon = t.icon;
@@ -142,24 +145,24 @@ export default function AddPredictionForm({ fermes, userId }: AddPredictionFormP
 
         {/* Résultat */}
         <div>
-          <label className="block text-sm font-medium text-[#29453E] mb-1.5">
+          <label className="block text-sm font-medium text-[#29453E] dark:text-[#9DAE7A] mb-1.5">
             Résultat / Analyse <span className="text-red-500">*</span>
           </label>
           <textarea
             required
-            rows={4}
+            rows={3}
             value={resultat}
             onChange={(e) => setResultat(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg bg-white border border-[#FFC490]/50 text-[#29453E] focus:ring-2 focus:ring-[#3C6C5F]/20 focus:border-[#3C6C5F] outline-none transition-all resize-none"
+            className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] dark:bg-[#0d1a15] border border-[#FFC490]/20 dark:border-[#FFC490]/10 text-[#29453E] dark:text-white focus:ring-2 focus:ring-[#3C6C5F] focus:border-transparent outline-none transition-all resize-none placeholder:text-[#3C6C5F]/40 dark:placeholder:text-[#9DAE7A]/40"
             placeholder="Ex: Rendement estimé à 4.2 tonnes/ha pour cette saison..."
           />
         </div>
 
         {/* Score de confiance */}
         <div>
-          <label className="block text-sm font-medium text-[#29453E] mb-1.5">
+          <label className="block text-sm font-medium text-[#29453E] dark:text-[#9DAE7A] mb-1.5">
             Score de confiance (%)
-            <span className="text-[#3C6C5F]/60 text-xs ml-1">(optionnel, 0–100)</span>
+            <span className="text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40 text-xs ml-1">(optionnel, 0–100)</span>
           </label>
           <input
             type="number"
@@ -168,37 +171,41 @@ export default function AddPredictionForm({ fermes, userId }: AddPredictionFormP
             step="1"
             value={confiance}
             onChange={(e) => setConfiance(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg bg-white border border-[#FFC490]/50 text-[#29453E] focus:ring-2 focus:ring-[#3C6C5F]/20 focus:border-[#3C6C5F] outline-none transition-all"
+            className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] dark:bg-[#0d1a15] border border-[#FFC490]/20 dark:border-[#FFC490]/10 text-[#29453E] dark:text-white focus:ring-2 focus:ring-[#3C6C5F] focus:border-transparent outline-none transition-all placeholder:text-[#3C6C5F]/40 dark:placeholder:text-[#9DAE7A]/40"
             placeholder="85"
           />
           {confiance && (
             <div className="mt-2 flex items-center gap-2">
-              <div className="flex-1 h-1.5 bg-[#FFC490]/30 rounded-full overflow-hidden">
+              <div className="flex-1 h-1.5 bg-[#FFF3DA] dark:bg-[#2a3f38] rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all ${
                     parseFloat(confiance) >= 80
                       ? "bg-[#3C6C5F]"
                       : parseFloat(confiance) >= 50
-                      ? "bg-[#9DAE7A]"
-                      : "bg-[#FFC490]"
+                      ? "bg-[#D4A574]"
+                      : "bg-red-500"
                   }`}
                   style={{ width: `${Math.min(parseFloat(confiance), 100)}%` }}
                 />
               </div>
-              <span className="text-xs font-medium text-[#29453E] w-10">
+              <span className="text-xs font-medium text-[#3C6C5F] dark:text-[#9DAE7A] w-10">
                 {confiance}%
               </span>
             </div>
           )}
         </div>
 
+        {/* Bouton avec palette APP */}
         <button
           type="submit"
           disabled={loading || fermes.length === 0}
-          className="w-full py-3 px-4 rounded-lg bg-[#3C6C5F] text-white font-medium hover:bg-[#29453E] active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer shadow-md shadow-[#3C6C5F]/20 flex items-center justify-center gap-2"
+          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#3C6C5F] to-[#29453E] hover:from-[#29453E] hover:to-[#1f332e] text-white font-medium active:scale-[0.98] disabled:opacity-50 transition-all shadow-lg shadow-[#3C6C5F]/20 flex items-center justify-center gap-2"
         >
           {loading ? (
-            <>Génération en cours...</>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Génération en cours...
+            </div>
           ) : (
             <>
               <FaRocket className="text-white" />
@@ -207,25 +214,27 @@ export default function AddPredictionForm({ fermes, userId }: AddPredictionFormP
           )}
         </button>
 
+        {/* Message d'erreur si pas de ferme */}
         {fermes.length === 0 && (
-          <div className="flex items-center gap-2 text-xs text-[#3C6C5F] justify-center">
-            <FaExclamationTriangle className="text-[#FFC490]" />
+          <div className="flex items-center gap-2 text-xs text-[#D4A574] dark:text-[#FFC490] justify-center">
+            <FaExclamationTriangle />
             <span>Vous devez d'abord créer une ferme.</span>
           </div>
         )}
 
+        {/* Messages de succès/erreur avec palette APP */}
         {message && (
           <div
-            className={`p-3.5 rounded-lg text-sm font-medium border flex items-start gap-2 ${
+            className={`p-3.5 rounded-xl text-sm font-medium border flex items-start gap-2 ${
               message.type === "success"
-                ? "bg-[#9DAE7A]/20 text-[#29453E] border-[#9DAE7A]/40"
-                : "bg-[#FFC490]/20 text-[#29453E] border-[#FFC490]/40"
+                ? "bg-[#DDF3E8] dark:bg-[#2a3f38]/50 text-[#29453E] dark:text-[#9DAE7A] border-[#9DAE7A]/30 dark:border-[#9DAE7A]/10"
+                : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"
             }`}
           >
             {message.type === "success" ? (
-              <FaCheckCircle className="text-[#3C6C5F] mt-0.5 flex-shrink-0" />
+              <FaCheckCircle className="mt-0.5 flex-shrink-0 text-[#3C6C5F]" />
             ) : (
-              <FaTimesCircle className="text-[#FFC490] mt-0.5 flex-shrink-0" />
+              <FaTimesCircle className="mt-0.5 flex-shrink-0 text-red-500" />
             )}
             <span>{message.text}</span>
           </div>
