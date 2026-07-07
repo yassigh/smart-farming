@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -43,13 +41,13 @@ model Utilisateur {
   role             Role
   image            String?  @db.Text
   createdAt        DateTime @default(now())
-  
+
   // 🔐 Champs 2FA et Reset Password
   twoFactorSecret  String?
   twoFactorEnabled Boolean  @default(false)
   resetToken       String?  @unique
   resetTokenExpiry DateTime?
-  
+
   // Relations
   fermes           Ferme[]
   notifications    Notification[]
@@ -60,6 +58,10 @@ model Utilisateur {
   revenus          Revenu[]
   predictions      Prediction[]
   presences        Presence[]
+
+  // Messagerie
+  messagesEnvoyes  Message[] @relation("MessagesEnvoyes")
+  messagesRecus    Message[] @relation("MessagesRecus")
 }
 
 model Ferme {
@@ -95,21 +97,69 @@ model Terrain {
   animaux       Animal[]
   cultures      Culture[]
 
+  // Relation inverse pour les employes assignes a ce terrain
+  employesAssignes EmployeFerme[]
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
 
 model EmployeFerme {
-  id           Int      @id @default(autoincrement())
-  poste        String
-  salaire      Float
-  dateEmbauche DateTime
+  id              Int      @id @default(autoincrement())
+  poste           String
+  salaire         Float
+  dateEmbauche    DateTime
+  roleDescription String?
 
   employeId Int
   employe   Utilisateur @relation(fields: [employeId], references: [id])
 
   fermeId Int
   ferme   Ferme @relation(fields: [fermeId], references: [id])
+
+  // Terrain assigne (un seul terrain par employe)
+  terrainAssigneId Int?
+  terrainAssigne   Terrain? @relation(fields: [terrainAssigneId], references: [id])
+
+  // Animaux et cultures assignes (plusieurs)
+  animauxAssignes   EmployeAnimal[]
+  culturesAssignees EmployeCulture[]
+}
+
+// Table de jointure Employe <-> Animal
+model EmployeAnimal {
+  id             Int          @id @default(autoincrement())
+  employeFermeId Int
+  employeFerme   EmployeFerme @relation(fields: [employeFermeId], references: [id], onDelete: Cascade)
+  animalId       Int
+  animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@unique([employeFermeId, animalId])
+}
+
+// Table de jointure Employe <-> Culture
+model EmployeCulture {
+  id             Int          @id @default(autoincrement())
+  employeFermeId Int
+  employeFerme   EmployeFerme @relation(fields: [employeFermeId], references: [id], onDelete: Cascade)
+  cultureId      Int
+  culture        Culture      @relation(fields: [cultureId], references: [id], onDelete: Cascade)
+
+  @@unique([employeFermeId, cultureId])
+}
+
+// Messagerie entre employe et agriculteur
+model Message {
+  id        Int      @id @default(autoincrement())
+  contenu   String   @db.Text
+  lu        Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  expediteurId   Int
+  expediteur     Utilisateur @relation("MessagesEnvoyes", fields: [expediteurId], references: [id])
+
+  destinataireId Int
+  destinataire   Utilisateur @relation("MessagesRecus", fields: [destinataireId], references: [id])
 }
 
 model Categorie {
@@ -139,6 +189,9 @@ model Animal {
 
   traitements  Traitement[]
   vaccinations Vaccination[]
+
+  // Relation inverse pour les employes assignes
+  employesAssignes EmployeAnimal[]
 }
 
 model Traitement {
@@ -162,7 +215,7 @@ model Vaccination {
   nomVaccin        String
   dateAdministered DateTime
   dateRappel       DateTime?
-  statut           String   // e.g. "A_JOUR" or "EN_RETARD"
+  statut           String
 
   animalId Int
   animal   Animal @relation(fields: [animalId], references: [id])
@@ -187,6 +240,9 @@ model Culture {
   categorie   Categorie @relation(fields: [categorieId], references: [id])
 
   recoltes Recolte[]
+
+  // Relation inverse pour les employes assignes
+  employesAssignes EmployeCulture[]
 }
 
 model Recolte {

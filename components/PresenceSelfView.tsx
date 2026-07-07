@@ -1,22 +1,19 @@
 // components/PresenceSelfView.tsx
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
 import { 
   Calendar, Upload, FileText, 
-  Check, X, AlertCircle, Loader2, Info, CheckCircle2,
+  Check, X, AlertCircle, Loader2, 
   BadgeCheck, HeartPulse, Coins, Clock,
-  Image, File, Download, Eye, Send, User,
-  Building2, CalendarDays, ChevronRight, Plus,
-  Trash2, Edit, MoreVertical, Bell, CheckCheck,
-  Activity, Thermometer, Cloud, Wind, Droplets,
-  Sun, Moon, CloudRain, CloudSnow, CloudLightning,
-  CloudFog, Sparkles, Zap, Award, Trophy, Star,
-  TrendingUp, TrendingDown, BarChart3, PieChart
+  File, Download, Eye, Send, User,
+  CalendarDays, ChevronRight, Plus,
+  Bell, Activity,
+  Sparkles, 
 } from "lucide-react";
 import { uploadCertificatAction, savePresenceAction } from "@/actions/presence";
 import { StatutPresence } from "@prisma/client";
-import Link from "next/link";
 
 interface Presence {
   id: number;
@@ -62,6 +59,7 @@ export default function PresenceSelfView({
   const [showCertificate, setShowCertificate] = useState<{ url: string; name: string } | null>(null);
   const [notifications, setNotifications] = useState<{ id: number; message: string; read: boolean }[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,7 +78,6 @@ export default function PresenceSelfView({
   const todayStr = new Date().toDateString();
   const todayPresence = history.find(p => new Date(p.date).toDateString() === todayStr);
 
-  // Format date helper
   const formatDate = (dateInput: string | Date) => {
     const d = new Date(dateInput);
     return d.toLocaleDateString("fr-FR", {
@@ -91,25 +88,16 @@ export default function PresenceSelfView({
     });
   };
 
-  const formatDateShort = (dateInput: string | Date) => {
-    const d = new Date(dateInput);
-    return d.toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
   const getStatusColor = (statut: StatutPresence) => {
     switch (statut) {
       case StatutPresence.PRESENT:
-        return { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", icon: CheckCircle2, badge: "bg-emerald-500" };
+        return { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", icon: Check };
       case StatutPresence.ABSENT:
-        return { bg: "bg-red-50", border: "border-red-200", text: "text-red-700", icon: X, badge: "bg-red-500" };
+        return { bg: "bg-red-50", border: "border-red-200", text: "text-red-700", icon: X };
       case StatutPresence.MALADE:
-        return { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", icon: HeartPulse, badge: "bg-amber-500" };
+        return { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", icon: HeartPulse };
       default:
-        return { bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-600", icon: Clock, badge: "bg-gray-400" };
+        return { bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-600", icon: Clock };
     }
   };
 
@@ -122,7 +110,6 @@ export default function PresenceSelfView({
     }
   };
 
-  // Handle file selection from modal
   const handleModalFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -135,7 +122,6 @@ export default function PresenceSelfView({
     reader.readAsDataURL(file);
   };
 
-  // Handle upload from modal
   const handleUploadFromModal = async () => {
     if (!selectedPresenceId || !selectedFile) return;
 
@@ -154,7 +140,7 @@ export default function PresenceSelfView({
       setHistory(prev => 
         prev.map(p => p.id === selectedPresenceId ? { ...p, certificatMedical: updatedPresence.certificatMedical } : p)
       );
-      setSuccessMsg("✅ Certificat médical téléversé avec succès.");
+      setSuccessMsg(" Certificat médical téléversé avec succès.");
       
       setTimeout(() => {
         setShowUploadModal(false);
@@ -163,13 +149,12 @@ export default function PresenceSelfView({
         setSelectedPresenceId(null);
       }, 1500);
     } else {
-      setErrorMsg(res.error || "❌ Une erreur est survenue lors de l'envoi.");
+      setErrorMsg(res.error || " Une erreur est survenue lors de l'envoi.");
     }
 
     setUploadingPresenceId(null);
   };
 
-  // Open upload modal
   const openUploadModal = (presenceId: number) => {
     setSelectedPresenceId(presenceId);
     setSelectedFile(null);
@@ -180,7 +165,6 @@ export default function PresenceSelfView({
     }, 100);
   };
 
-  // Handle self check-in
   const handleSelfCheckIn = async (statut: StatutPresence) => {
     setIsSubmittingToday(true);
     setErrorMsg(null);
@@ -207,7 +191,7 @@ export default function PresenceSelfView({
           utilisateurId: connectedUser.id
         }, ...filtered];
       });
-      setSuccessMsg("✅ Votre pointage a été enregistré avec succès.");
+      setSuccessMsg(" Votre pointage a été enregistré avec succès.");
       
       if (statut === StatutPresence.MALADE) {
         setTimeout(() => {
@@ -220,17 +204,15 @@ export default function PresenceSelfView({
         }, 1000);
       }
     } else {
-      setErrorMsg(res.error || "❌ Une erreur est survenue lors de l'enregistrement.");
+      setErrorMsg(res.error || " Une erreur est survenue lors de l'enregistrement.");
     }
     setIsSubmittingToday(false);
   };
 
-  // View certificate
   const viewCertificate = (url: string, name: string) => {
     setShowCertificate({ url, name });
   };
 
-  // Get month stats
   const getMonthStats = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -255,6 +237,11 @@ export default function PresenceSelfView({
 
   const monthStats = getMonthStats();
 
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    window.location.reload();
+  };
+
   useEffect(() => {
     const demoNotifications = [
       { id: 1, message: "Votre présence du 25/06/2026 a été validée", read: false },
@@ -264,53 +251,44 @@ export default function PresenceSelfView({
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FAFAFA] to-[#F0F2ED] dark:from-[#0d1a15] dark:to-[#0d1a15] p-4 md:p-8">
-      
-      {/* ============================================ */}
-      {/* HEADER MODERNE */}
-      {/* ============================================ */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-[#3C6C5F] to-[#29453E] rounded-2xl shadow-lg shadow-[#3C6C5F]/20">
-              <Calendar className="text-white" size={28} />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-[#29453E] dark:text-white">
-                Mon Espace Présences
-              </h1>
-              <p className="text-sm text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mt-0.5">
-                Consultez votre historique, gérez vos justificatifs
-              </p>
-            </div>
+    <div className="p-6 space-y-6 bg-[#F8F6F3] min-h-screen">
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-[#3C6C5F] rounded-2xl">
+            <Calendar size={24} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#29453E]">Mon Espace Présences</h1>
+            <p className="text-sm text-[#3C6C5F]/60">Pointage et historique personnel</p>
           </div>
         </div>
-        
         <div className="flex items-center gap-3">
           {/* Notifications */}
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-3 rounded-2xl bg-white dark:bg-[#1a2e28] border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-lg transition-all duration-300 hover:scale-105"
+              className="relative p-2.5 bg-white rounded-xl border border-[#E8E3DC] hover:border-[#3C6C5F] transition-all hover:shadow-md"
             >
-              <Bell size={20} className="text-[#3C6C5F] dark:text-[#9DAE7A]" />
+              <Bell size={18} className="text-[#3C6C5F]" />
               {notifications.filter(n => !n.read).length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
                   {notifications.filter(n => !n.read).length}
                 </span>
               )}
             </button>
             
             {showNotifications && (
-              <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#1a2e28] rounded-2xl shadow-2xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="p-4 border-b border-[#FFC490]/20 dark:border-[#FFC490]/10 bg-gradient-to-r from-[#FFF3DA]/50 to-white dark:from-[#2a3f38]/50 dark:to-[#1a2e28]">
-                  <span className="font-bold text-[#29453E] dark:text-white text-sm">Notifications</span>
+              <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-[#E8E3DC] overflow-hidden z-50">
+                <div className="p-4 border-b border-[#E8E3DC] bg-[#FAFAFA]">
+                  <span className="font-bold text-[#29453E] text-sm">Notifications</span>
                 </div>
                 <div className="max-h-56 overflow-y-auto">
                   {notifications.map(notif => (
-                    <div key={notif.id} className={`p-4 border-b border-[#FFC490]/10 dark:border-[#FFC490]/5 flex items-start gap-3 transition-colors ${!notif.read ? 'bg-[#FFF3DA]/20 dark:bg-[#2a3f38]/20' : ''}`}>
+                    <div key={notif.id} className={`p-4 border-b border-[#E8E3DC]/50 flex items-start gap-3 ${!notif.read ? 'bg-[#FFF3DA]/30' : ''}`}>
                       <div className={`w-2 h-2 rounded-full ${!notif.read ? 'bg-[#3C6C5F]' : 'bg-gray-300'} mt-1.5 flex-shrink-0`}></div>
-                      <p className="text-sm text-[#29453E] dark:text-white leading-relaxed">{notif.message}</p>
+                      <p className="text-sm text-[#29453E] leading-relaxed">{notif.message}</p>
                     </div>
                   ))}
                 </div>
@@ -318,9 +296,17 @@ export default function PresenceSelfView({
             )}
           </div>
           
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="p-2.5 bg-white rounded-xl border border-[#E8E3DC] hover:border-[#3C6C5F] transition-all hover:shadow-md disabled:opacity-50"
+          >
+            <Sparkles size={18} className={`text-[#3C6C5F] ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+          
           {/* User profile */}
-          <div className="flex items-center gap-3 bg-white dark:bg-[#1a2e28] px-4 py-2.5 rounded-2xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3C6C5F] to-[#29453E] text-white flex items-center justify-center font-bold text-sm border-2 border-[#FFC490]/30 shadow-md">
+          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-[#E8E3DC] shadow-sm">
+            <div className="w-9 h-9 rounded-full bg-[#3C6C5F] text-white flex items-center justify-center font-bold text-xs">
               {connectedUser.image ? (
                 <img src={connectedUser.image} alt="Profile" className="w-full h-full object-cover rounded-full" />
               ) : (
@@ -328,60 +314,62 @@ export default function PresenceSelfView({
               )}
             </div>
             <div>
-              <h4 className="font-semibold text-[#29453E] dark:text-white text-sm">{connectedUser.prenom} {connectedUser.nom}</h4>
-              <span className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 capitalize">{connectedUser.role.toLowerCase()}</span>
+              <p className="text-sm font-medium text-[#29453E]">{connectedUser.prenom} {connectedUser.nom}</p>
+              <p className="text-[10px] text-[#3C6C5F]/50 uppercase">{connectedUser.role}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ============================================ */}
-      {/* TODAY'S STATUS - MODERN */}
-      {/* ============================================ */}
+      {/* Messages */}
+      {successMsg && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl flex items-center gap-3">
+          <Check size={20} className="text-emerald-500 flex-shrink-0" />
+          <span className="font-medium">{successMsg}</span>
+        </div>
+      )}
+      {errorMsg && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3">
+          <AlertCircle size={20} className="text-red-500 flex-shrink-0" />
+          <span className="font-medium">{errorMsg}</span>
+        </div>
+      )}
+
+      {/* Today's Status */}
       {!todayPresence ? (
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#3C6C5F] via-[#2a5547] to-[#29453E] rounded-3xl p-8 mb-8 shadow-2xl shadow-[#3C6C5F]/20">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#FFC490]/5 rounded-full blur-3xl"></div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="bg-gradient-to-r from-[#3C6C5F] to-[#29453E] rounded-2xl p-6 border border-[#3C6C5F]/20 shadow-lg">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="text-white">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
-                  <Clock size={24} className="text-[#FFC490]" />
-                </div>
-                <h2 className="text-2xl font-bold">Pointage d'aujourd'hui</h2>
-              </div>
-              <p className="text-white/80 text-sm ml-1">
+              <h2 className="text-xl font-bold">Pointage d'aujourd'hui</h2>
+              <p className="text-white/70 text-sm mt-1">
                 {new Date().toLocaleDateString("fr-FR", { 
                   weekday: 'long', 
                   day: 'numeric', 
-                  month: 'long',
-                  year: 'numeric' 
+                  month: 'long' 
                 })}
               </p>
             </div>
             
             <div className="flex flex-wrap items-center gap-3">
               {isSubmittingToday ? (
-                <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-2xl text-white">
-                  <Loader2 size={20} className="animate-spin" />
-                  <span className="font-medium">Enregistrement...</span>
+                <div className="flex items-center gap-2 bg-white/20 px-5 py-2.5 rounded-xl text-white">
+                  <Loader2 size={18} className="animate-spin" />
+                  <span className="font-medium text-sm">Enregistrement...</span>
                 </div>
               ) : (
                 <>
                   <button
                     onClick={() => handleSelfCheckIn(StatutPresence.PRESENT)}
-                    className="group px-6 py-3 bg-white text-[#29453E] hover:bg-[#FFF3DA] font-bold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 hover:scale-105"
+                    className="px-5 py-2.5 bg-white text-[#29453E] hover:bg-[#FFF3DA] font-medium rounded-xl transition-all flex items-center gap-2 shadow-md hover:shadow-lg text-sm"
                   >
-                    <CheckCircle2 size={20} className="text-[#3C6C5F] group-hover:scale-110 transition-transform" />
+                    <Check size={16} />
                     Je suis présent
                   </button>
                   <button
                     onClick={() => handleSelfCheckIn(StatutPresence.MALADE)}
-                    className="group px-6 py-3 bg-[#FFC490] hover:bg-[#FFB070] text-[#29453E] font-bold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 hover:scale-105"
+                    className="px-5 py-2.5 bg-[#FFC490] text-[#29453E] hover:bg-[#FFB070] font-medium rounded-xl transition-all flex items-center gap-2 shadow-md hover:shadow-lg text-sm"
                   >
-                    <HeartPulse size={20} className="group-hover:scale-110 transition-transform" />
+                    <HeartPulse size={16} />
                     Je suis malade
                   </button>
                 </>
@@ -390,41 +378,37 @@ export default function PresenceSelfView({
           </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#1a2e28] rounded-3xl p-6 mb-8 shadow-xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-2xl transition-all duration-300">
+        <div className="bg-white rounded-2xl p-5 border border-[#E8E3DC] shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className={`w-14 h-14 rounded-2xl ${getStatusColor(todayPresence.statut).bg} border-2 ${getStatusColor(todayPresence.statut).border} flex items-center justify-center shadow-md`}>
+              <div className={`w-12 h-12 rounded-xl ${getStatusColor(todayPresence.statut).bg} border-2 ${getStatusColor(todayPresence.statut).border} flex items-center justify-center`}>
                 {(() => {
                   const Icon = getStatusColor(todayPresence.statut).icon;
-                  return <Icon size={28} className={getStatusColor(todayPresence.statut).text} />;
+                  return <Icon size={20} className={getStatusColor(todayPresence.statut).text} />;
                 })()}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold text-[#29453E] dark:text-white">
-                    Pointage enregistré
-                  </h2>
-                  <BadgeCheck size={20} className="text-[#3C6C5F]" />
+                  <h2 className="text-lg font-bold text-[#29453E]">Pointage enregistré</h2>
+                  <BadgeCheck size={16} className="text-[#3C6C5F]" />
                 </div>
-                <p className="text-sm text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60">
-                  {formatDate(todayPresence.date)}
-                </p>
+                <p className="text-sm text-[#3C6C5F]/60">{formatDate(todayPresence.date)}</p>
               </div>
             </div>
             
             <div className="flex flex-wrap items-center gap-3">
-              <span className={`px-5 py-2.5 rounded-2xl border-2 font-bold text-sm ${getStatusColor(todayPresence.statut).bg} ${getStatusColor(todayPresence.statut).border} ${getStatusColor(todayPresence.statut).text} shadow-sm`}>
+              <span className={`px-4 py-2 rounded-xl border-2 font-medium text-sm ${getStatusColor(todayPresence.statut).bg} ${getStatusColor(todayPresence.statut).border} ${getStatusColor(todayPresence.statut).text}`}>
                 {getStatusLabel(todayPresence.statut)}
               </span>
               
               {todayPresence.statut === StatutPresence.PRESENT && (
-                <span className={`px-5 py-2.5 rounded-2xl border-2 text-sm font-bold flex items-center gap-2 shadow-sm ${
+                <span className={`px-4 py-2 rounded-xl border-2 text-sm font-medium flex items-center gap-2 ${
                   todayPresence.paye 
                     ? "bg-emerald-50 border-emerald-200 text-emerald-700"
                     : "bg-amber-50 border-amber-200 text-amber-700"
                 }`}>
-                  <Coins size={16} />
-                  {todayPresence.paye ? "Payé ✅" : "En attente ⏳"}
+                  <Coins size={14} />
+                  {todayPresence.paye ? "Payé" : "En attente"}
                 </span>
               )}
               
@@ -433,17 +417,17 @@ export default function PresenceSelfView({
                   {todayPresence.certificatMedical ? (
                     <button
                       onClick={() => viewCertificate(todayPresence.certificatMedical!, `${connectedUser.prenom} ${connectedUser.nom}`)}
-                      className="px-5 py-2.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-2 border-emerald-200 font-bold rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
+                      className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-medium rounded-xl transition-all flex items-center gap-2 text-sm"
                     >
-                      <FileText size={16} />
+                      <Eye size={14} />
                       Voir justificatif
                     </button>
                   ) : (
                     <button
                       onClick={() => openUploadModal(todayPresence.id)}
-                      className="px-5 py-2.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border-2 border-amber-200 font-bold rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
+                      className="px-4 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 font-medium rounded-xl transition-all flex items-center gap-2 text-sm"
                     >
-                      <Upload size={16} />
+                      <Upload size={14} />
                       Déposer justificatif
                     </button>
                   )}
@@ -454,132 +438,123 @@ export default function PresenceSelfView({
         </div>
       )}
 
-      {/* ============================================ */}
-      {/* STATS CARDS MODERNES */}
-      {/* ============================================ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <div className="group bg-white dark:bg-[#1a2e28] rounded-3xl p-6 shadow-lg border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-2xl p-5 border border-[#E8E3DC]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 font-bold uppercase tracking-wider">Présences</p>
-              <p className="text-4xl font-extrabold text-[#29453E] dark:text-white mt-1">{stats.present}</p>
+              <p className="text-xs font-medium text-[#3C6C5F]/60 uppercase tracking-wider">Présences</p>
+              <p className="text-2xl font-bold text-emerald-600 mt-1">{stats.present}</p>
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
-              <CheckCircle2 size={26} className="text-white" />
+            <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <Check size={20} className="text-emerald-600" />
             </div>
           </div>
-          <div className="mt-4 h-1.5 w-full bg-[#FFF3DA] dark:bg-[#2a3f38] rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-emerald-400 to-[#3C6C5F] rounded-full transition-all duration-1000" style={{ width: `${monthStats.presentRate}%` }}></div>
+          <div className="mt-2 h-1.5 w-full bg-[#FFF3DA] rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${monthStats.presentRate}%` }} />
           </div>
-          <p className="text-xs text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40 mt-2 font-medium">
-            {monthStats.presentRate}% ce mois
-          </p>
+          <p className="text-xs text-[#3C6C5F]/50 mt-2">{monthStats.presentRate}% ce mois</p>
         </div>
 
-        <div className="group bg-white dark:bg-[#1a2e28] rounded-3xl p-6 shadow-lg border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white rounded-2xl p-5 border border-[#E8E3DC]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-red-600/60 dark:text-red-400/60 font-bold uppercase tracking-wider">Absences</p>
-              <p className="text-4xl font-extrabold text-red-600 dark:text-red-400 mt-1">{stats.absent}</p>
+              <p className="text-xs font-medium text-[#3C6C5F]/60 uppercase tracking-wider">Absences</p>
+              <p className="text-2xl font-bold text-red-600 mt-1">{stats.absent}</p>
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-110 transition-transform">
-              <X size={26} className="text-white" />
+            <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center">
+              <X size={20} className="text-red-600" />
             </div>
           </div>
-          <div className="mt-4 h-1.5 w-full bg-[#FFF3DA] dark:bg-[#2a3f38] rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full transition-all duration-1000" style={{ width: `${monthStats.total > 0 ? (stats.absent / monthStats.total) * 100 : 0}%` }}></div>
+          <div className="mt-2 h-1.5 w-full bg-[#FFF3DA] rounded-full overflow-hidden">
+            <div className="h-full bg-red-500 rounded-full transition-all" style={{ width: `${monthStats.total > 0 ? (stats.absent / monthStats.total) * 100 : 0}%` }} />
           </div>
-          <p className="text-xs text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40 mt-2 font-medium">
-            {monthStats.total > 0 ? Math.round((stats.absent / monthStats.total) * 100) : 0}% des jours
-          </p>
+          <p className="text-xs text-[#3C6C5F]/50 mt-2">{monthStats.total > 0 ? Math.round((stats.absent / monthStats.total) * 100) : 0}% des jours</p>
         </div>
 
-        <div className="group bg-white dark:bg-[#1a2e28] rounded-3xl p-6 shadow-lg border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white rounded-2xl p-5 border border-[#E8E3DC]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-amber-600/60 dark:text-amber-400/60 font-bold uppercase tracking-wider">Arrêts maladie</p>
-              <p className="text-4xl font-extrabold text-[#29453E] dark:text-white mt-1">{stats.malade}</p>
+              <p className="text-xs font-medium text-[#3C6C5F]/60 uppercase tracking-wider">Maladies</p>
+              <p className="text-2xl font-bold text-amber-600 mt-1">{stats.malade}</p>
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
-              <HeartPulse size={26} className="text-white" />
+            <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center">
+              <HeartPulse size={20} className="text-amber-600" />
             </div>
           </div>
-          <div className="mt-4 h-1.5 w-full bg-[#FFF3DA] dark:bg-[#2a3f38] rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-1000" style={{ width: `${monthStats.total > 0 ? (stats.malade / monthStats.total) * 100 : 0}%` }}></div>
+          <div className="mt-2 h-1.5 w-full bg-[#FFF3DA] rounded-full overflow-hidden">
+            <div className="h-full bg-amber-500 rounded-full transition-all" style={{ width: `${monthStats.total > 0 ? (stats.malade / monthStats.total) * 100 : 0}%` }} />
           </div>
-          <p className="text-xs text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40 mt-2 font-medium">
-            {monthStats.total > 0 ? Math.round((stats.malade / monthStats.total) * 100) : 0}% du mois
-          </p>
+          <p className="text-xs text-[#3C6C5F]/50 mt-2">{monthStats.total > 0 ? Math.round((stats.malade / monthStats.total) * 100) : 0}% du mois</p>
         </div>
 
-        <div className="group bg-white dark:bg-[#1a2e28] rounded-3xl p-6 shadow-lg border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white rounded-2xl p-5 border border-[#E8E3DC]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 font-bold uppercase tracking-wider">Taux de présence</p>
-              <p className="text-4xl font-extrabold text-[#29453E] dark:text-white mt-1">{monthStats.presentRate}%</p>
+              <p className="text-xs font-medium text-[#3C6C5F]/60 uppercase tracking-wider">Taux de présence</p>
+              <p className="text-2xl font-bold text-[#29453E] mt-1">{monthStats.presentRate}%</p>
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3C6C5F] to-[#29453E] flex items-center justify-center shadow-lg shadow-[#3C6C5F]/20 group-hover:scale-110 transition-transform">
-              <Activity size={26} className="text-white" />
+            <div className="w-11 h-11 rounded-xl bg-[#DDF3E8] flex items-center justify-center">
+              <Activity size={20} className="text-[#3C6C5F]" />
             </div>
           </div>
-          <div className="mt-4 h-1.5 w-full bg-[#FFF3DA] dark:bg-[#2a3f38] rounded-full overflow-hidden">
-            <div className={`h-full rounded-full transition-all duration-1000 ${
-              monthStats.presentRate >= 80 ? 'bg-gradient-to-r from-emerald-400 to-[#3C6C5F]' : 
-              monthStats.presentRate >= 60 ? 'bg-gradient-to-r from-amber-400 to-amber-600' : 
-              'bg-gradient-to-r from-red-400 to-red-600'
-            }`} style={{ width: `${monthStats.presentRate}%` }}></div>
+          <div className="mt-2 h-1.5 w-full bg-[#FFF3DA] rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all ${
+              monthStats.presentRate >= 80 ? 'bg-emerald-500' : 
+              monthStats.presentRate >= 60 ? 'bg-amber-500' : 
+              'bg-red-500'
+            }`} style={{ width: `${monthStats.presentRate}%` }} />
           </div>
-          <p className="text-xs font-medium mt-2 flex items-center gap-1">
-            {monthStats.presentRate >= 80 ? 
-              <span className="text-emerald-600">✅ Bonne assiduité</span> : 
-              monthStats.presentRate >= 60 ? 
-              <span className="text-amber-600">⚠️ À améliorer</span> : 
-              <span className="text-red-600">❌ Attention</span>
-            }
+          <p className={`text-xs font-medium mt-2 ${
+            monthStats.presentRate >= 80 ? 'text-emerald-600' : 
+            monthStats.presentRate >= 60 ? 'text-amber-600' : 
+            'text-red-600'
+          }`}>
+            {monthStats.presentRate >= 80 ? ' Bonne assiduité' : 
+             monthStats.presentRate >= 60 ? ' À améliorer' : 
+             ' Attention'}
           </p>
         </div>
       </div>
 
-      {/* ============================================ */}
-      {/* HISTORY - MODERN */}
-      {/* ============================================ */}
-      <div className="bg-white dark:bg-[#1a2e28] rounded-3xl shadow-xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 overflow-hidden hover:shadow-2xl transition-all duration-300">
-        <div className="p-6 border-b border-[#FFC490]/20 dark:border-[#FFC490]/10 bg-gradient-to-r from-[#FFF3DA]/20 to-white dark:from-[#2a3f38]/20 dark:to-[#1a2e28] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* History */}
+      <div className="bg-white rounded-2xl border border-[#E8E3DC] overflow-hidden">
+        <div className="p-4 border-b border-[#E8E3DC] bg-[#FAFAFA] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#DDF3E8] dark:bg-[#2a3f38] rounded-xl">
-              <Clock size={20} className="text-[#3C6C5F]" />
+            <div className="p-2 bg-[#DDF3E8] rounded-xl">
+              <Clock size={18} className="text-[#3C6C5F]" />
             </div>
-            <h2 className="text-xl font-bold text-[#29453E] dark:text-white">Historique de Pointage</h2>
-            <span className="px-3 py-1 bg-[#DDF3E8] dark:bg-[#2a3f38] text-[#3C6C5F] text-xs font-bold rounded-full">
+            <h2 className="font-bold text-[#29453E]">Historique</h2>
+            <span className="px-2.5 py-1 bg-[#FFF3DA] text-[#3C6C5F] text-xs font-bold rounded-full">
               {history.length} enregistrements
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs">
-            <span className="px-4 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               Présent
             </span>
-            <span className="px-4 py-1.5 rounded-full bg-red-50 text-red-700 border border-red-200 flex items-center gap-1.5 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 font-medium">
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>
               Absent
             </span>
-            <span className="px-4 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
               Malade
             </span>
           </div>
         </div>
 
         {history.length === 0 ? (
-          <div className="p-16 text-center">
-            <div className="w-20 h-20 rounded-full bg-[#FFF3DA] dark:bg-[#2a3f38] flex items-center justify-center mx-auto mb-4">
-              <Calendar size={36} className="text-[#3C6C5F]/40" />
+          <div className="p-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-[#FFF3DA] flex items-center justify-center mx-auto mb-3">
+              <Calendar size={28} className="text-[#3C6C5F]/40" />
             </div>
-            <p className="text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 font-medium">Aucun historique de présence disponible.</p>
-            <p className="text-xs text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40 mt-1">Commencez par pointer votre présence aujourd'hui.</p>
+            <p className="text-[#3C6C5F]/60 font-medium">Aucun historique disponible</p>
+            <p className="text-xs text-[#3C6C5F]/40 mt-1">Commencez par pointer votre présence aujourd'hui</p>
           </div>
         ) : (
-          <div className="divide-y divide-[#FFC490]/10 dark:divide-[#FFC490]/5">
+          <div className="divide-y divide-[#E8E3DC]/50 max-h-[400px] overflow-y-auto">
             {history.map((record) => {
               const statusColor = getStatusColor(record.statut);
               const isMalade = record.statut === StatutPresence.MALADE;
@@ -587,36 +562,36 @@ export default function PresenceSelfView({
               const isPendingUpload = uploadingPresenceId === record.id;
 
               return (
-                <div key={record.id} className="p-5 hover:bg-[#FFF3DA]/10 dark:hover:bg-[#2a3f38]/20 transition-colors duration-200">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-2xl ${statusColor.bg} border-2 ${statusColor.border} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                <div key={record.id} className="p-4 hover:bg-[#FAFAFA] transition-colors">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl ${statusColor.bg} border-2 ${statusColor.border} flex items-center justify-center flex-shrink-0`}>
                         {(() => {
                           const Icon = statusColor.icon;
-                          return <Icon size={22} className={statusColor.text} />;
+                          return <Icon size={18} className={statusColor.text} />;
                         })()}
                       </div>
                       <div>
-                        <p className="font-bold text-[#29453E] dark:text-white text-sm">
+                        <p className="font-medium text-[#29453E] text-sm">
                           {formatDate(record.date)}
                         </p>
-                        <div className="flex flex-wrap items-center gap-2 mt-1">
-                          <span className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full ${statusColor.bg} border ${statusColor.border} ${statusColor.text}`}>
+                        <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                          <span className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full ${statusColor.bg} border ${statusColor.border} ${statusColor.text}`}>
                             {getStatusLabel(record.statut)}
                           </span>
                           {record.statut === StatutPresence.PRESENT && (
-                            <span className={`text-[10px] font-bold inline-flex items-center gap-1 px-3 py-1 rounded-full border ${
+                            <span className={`text-[10px] font-medium inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${
                               record.paye 
                                 ? "bg-emerald-50 border-emerald-200 text-emerald-700"
                                 : "bg-amber-50 border-amber-200 text-amber-700"
                             }`}>
-                              <Coins size={12} />
+                              <Coins size={10} />
                               {record.paye ? "Payé" : "En attente"}
                             </span>
                           )}
                           {isMalade && hasCertificate && (
-                            <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
-                              <BadgeCheck size={12} />
+                            <span className="text-[10px] font-medium bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                              <BadgeCheck size={10} />
                               Justifié
                             </span>
                           )}
@@ -629,27 +604,27 @@ export default function PresenceSelfView({
                         hasCertificate ? (
                           <button
                             onClick={() => viewCertificate(record.certificatMedical!, `${connectedUser.prenom} ${connectedUser.nom}`)}
-                            className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-2 border-emerald-200 text-xs font-bold rounded-xl transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
+                            className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-medium rounded-xl transition-all flex items-center gap-1.5"
                           >
-                            <Eye size={14} />
-                            Voir justificatif
+                            <Eye size={12} />
+                            Voir
                           </button>
                         ) : (
                           <button
                             onClick={() => openUploadModal(record.id)}
                             disabled={isPendingUpload}
-                            className="px-4 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border-2 border-amber-200 text-xs font-bold rounded-xl transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md disabled:opacity-50"
+                            className="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 text-xs font-medium rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-50"
                           >
                             {isPendingUpload ? (
-                              <Loader2 size={14} className="animate-spin" />
+                              <Loader2 size={12} className="animate-spin" />
                             ) : (
-                              <Upload size={14} />
+                              <Upload size={12} />
                             )}
                             Déposer
                           </button>
                         )
                       ) : (
-                        <span className="text-xs text-[#3C6C5F]/30 dark:text-[#9DAE7A]/30">-</span>
+                        <span className="text-xs text-[#3C6C5F]/30">—</span>
                       )}
                     </div>
                   </div>
@@ -660,18 +635,49 @@ export default function PresenceSelfView({
         )}
       </div>
 
-      {/* ============================================ */}
-      {/* UPLOAD MODAL - MODERN */}
-      {/* ============================================ */}
+      {/* Quick Tips */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl p-4 border border-[#E8E3DC] flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+            <BadgeCheck size={18} className="text-emerald-600" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-[#29453E]">Présence</p>
+            <p className="text-xs text-[#3C6C5F]/60">Points validés automatiquement</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 border border-[#E8E3DC] flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+            <HeartPulse size={18} className="text-amber-600" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-[#29453E]">Maladie</p>
+            <p className="text-xs text-[#3C6C5F]/60">Justificatif obligatoire</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 border border-[#E8E3DC] flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-[#FFF3DA] flex items-center justify-center">
+            <Bell size={18} className="text-[#3C6C5F]" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-[#29453E]">Notifications</p>
+            <p className="text-xs text-[#3C6C5F]/60">Suivez vos demandes</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#1a2e28] rounded-3xl max-w-md w-full p-8 shadow-2xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#FFF3DA] dark:bg-[#2a3f38] rounded-xl">
-                  <Upload size={22} className="text-[#3C6C5F]" />
+                <div className="p-2 bg-[#FFF3DA] rounded-xl">
+                  <Upload size={18} className="text-[#3C6C5F]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#29453E] dark:text-white">Déposer un justificatif</h3>
+                <h3 className="text-lg font-bold text-[#29453E]">Déposer un justificatif</h3>
               </div>
               <button
                 onClick={() => {
@@ -680,14 +686,14 @@ export default function PresenceSelfView({
                   setFilePreview(null);
                   setSelectedPresenceId(null);
                 }}
-                className="p-2 rounded-xl hover:bg-[#FFF3DA] dark:hover:bg-[#2a3f38] transition-all"
+                className="p-2 hover:bg-[#F8F6F3] rounded-xl transition-colors"
               >
-                <X size={22} className="text-[#3C6C5F]/60" />
+                <X size={18} className="text-[#3C6C5F]/40" />
               </button>
             </div>
 
-            <p className="text-sm text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mb-6">
-              Veuillez sélectionner un certificat médical (PDF, JPG, PNG - max 5Mo)
+            <p className="text-sm text-[#3C6C5F]/60 mb-5">
+              Sélectionnez un certificat médical (PDF, JPG, PNG - max 5Mo)
             </p>
 
             <input
@@ -699,20 +705,20 @@ export default function PresenceSelfView({
             />
 
             {filePreview ? (
-              <div className="mb-6 p-5 bg-[#FFF3DA]/30 dark:bg-[#2a3f38]/30 rounded-2xl border-2 border-[#FFC490]/20 dark:border-[#FFC490]/10">
-                <div className="flex items-center gap-4">
+              <div className="mb-5 p-4 bg-[#FFF3DA]/30 rounded-xl border border-[#FFC490]/20">
+                <div className="flex items-center gap-3">
                   {selectedFile?.type === 'application/pdf' ? (
-                    <div className="p-3 bg-red-50 rounded-xl">
-                      <File size={32} className="text-red-500" />
+                    <div className="p-2 bg-red-50 rounded-lg">
+                      <File size={24} className="text-red-500" />
                     </div>
                   ) : (
-                    <img src={filePreview} alt="Prévisualisation" className="w-16 h-16 object-cover rounded-xl border-2 border-[#FFC490]/20" />
+                    <img src={filePreview} alt="Prévisualisation" className="w-14 h-14 object-cover rounded-lg border border-[#E8E3DC]" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#29453E] dark:text-white truncate">
+                    <p className="text-sm font-medium text-[#29453E] truncate">
                       {selectedFile?.name}
                     </p>
-                    <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60">
+                    <p className="text-xs text-[#3C6C5F]/60">
                       {(selectedFile?.size || 0) / 1024 / 1024 < 1 
                         ? `${Math.round((selectedFile?.size || 0) / 1024)} Ko`
                         : `${((selectedFile?.size || 0) / 1024 / 1024).toFixed(1)} Mo`}
@@ -723,32 +729,28 @@ export default function PresenceSelfView({
                       setSelectedFile(null);
                       setFilePreview(null);
                     }}
-                    className="p-2 rounded-xl hover:bg-[#FFF3DA] dark:hover:bg-[#2a3f38] transition-all"
+                    className="p-1.5 hover:bg-[#FFF3DA] rounded-lg transition-colors"
                   >
-                    <X size={18} className="text-[#3C6C5F]/60" />
+                    <X size={16} className="text-[#3C6C5F]/40" />
                   </button>
                 </div>
               </div>
             ) : (
               <div 
                 onClick={() => modalFileInputRef.current?.click()}
-                className="border-2 border-dashed border-[#FFC490]/30 dark:border-[#FFC490]/10 rounded-2xl p-10 text-center cursor-pointer hover:border-[#3C6C5F] hover:bg-[#FFF3DA]/20 transition-all duration-300 mb-6"
+                className="border-2 border-dashed border-[#E8E3DC] rounded-xl p-8 text-center cursor-pointer hover:border-[#3C6C5F] hover:bg-[#FFF3DA]/20 transition-all mb-5"
               >
-                <div className="w-16 h-16 rounded-full bg-[#FFF3DA] dark:bg-[#2a3f38] flex items-center justify-center mx-auto mb-3">
-                  <Upload size={28} className="text-[#3C6C5F]/60" />
+                <div className="w-14 h-14 rounded-full bg-[#FFF3DA] flex items-center justify-center mx-auto mb-2">
+                  <Upload size={24} className="text-[#3C6C5F]/60" />
                 </div>
-                <p className="text-sm font-semibold text-[#29453E] dark:text-white">
-                  Cliquez pour sélectionner un fichier
-                </p>
-                <p className="text-xs text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40 mt-1">
-                  PDF, JPG, PNG, WEBP • max 5Mo
-                </p>
+                <p className="text-sm font-medium text-[#29453E]">Cliquez pour sélectionner</p>
+                <p className="text-xs text-[#3C6C5F]/40 mt-1">PDF, JPG, PNG, WEBP • max 5Mo</p>
               </div>
             )}
 
             {errorMsg && (
-              <div className="p-4 mb-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-2xl text-sm flex items-center gap-3">
-                <AlertCircle size={18} />
+              <div className="p-3 mb-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-center gap-2">
+                <AlertCircle size={16} />
                 {errorMsg}
               </div>
             )}
@@ -761,23 +763,23 @@ export default function PresenceSelfView({
                   setFilePreview(null);
                   setSelectedPresenceId(null);
                 }}
-                className="flex-1 py-3.5 rounded-2xl border-2 border-[#FFC490]/20 dark:border-[#FFC490]/10 text-[#29453E] dark:text-white font-bold hover:bg-[#FFF3DA] dark:hover:bg-[#2a3f38] transition-all"
+                className="flex-1 py-3 rounded-xl border border-[#E8E3DC] text-[#29453E] font-medium hover:bg-[#F8F6F3] transition-all text-sm"
               >
                 Annuler
               </button>
               <button
                 onClick={handleUploadFromModal}
                 disabled={!selectedFile || uploadingPresenceId !== null}
-                className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-[#3C6C5F] to-[#29453E] text-white font-bold hover:from-[#29453E] hover:to-[#1f332e] transition-all duration-300 disabled:opacity-50 shadow-lg shadow-[#3C6C5F]/20 hover:shadow-xl flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl bg-[#3C6C5F] text-white font-medium hover:bg-[#29453E] transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
               >
                 {uploadingPresenceId ? (
                   <>
-                    <Loader2 size={18} className="animate-spin" />
+                    <Loader2 size={16} className="animate-spin" />
                     Envoi...
                   </>
                 ) : (
                   <>
-                    <Send size={16} />
+                    <Send size={14} />
                     Envoyer
                   </>
                 )}
@@ -787,60 +789,58 @@ export default function PresenceSelfView({
         </div>
       )}
 
-      {/* ============================================ */}
-      {/* CERTIFICATE VIEWER MODAL - MODERN */}
-      {/* ============================================ */}
+      {/* Certificate Viewer Modal */}
       {showCertificate && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#1a2e28] rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 animate-in zoom-in-95 duration-200 flex flex-col">
-            <div className="p-5 border-b border-[#FFC490]/20 dark:border-[#FFC490]/10 flex justify-between items-center bg-gradient-to-r from-[#FFF3DA]/30 to-white dark:from-[#2a3f38]/30 dark:to-[#1a2e28]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+            <div className="p-4 border-b border-[#E8E3DC] flex items-center justify-between bg-[#FAFAFA]">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#DDF3E8] dark:bg-[#2a3f38] rounded-xl">
-                  <FileText size={20} className="text-[#3C6C5F]" />
+                <div className="p-2 bg-[#DDF3E8] rounded-xl">
+                  <FileText size={18} className="text-[#3C6C5F]" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#29453E] dark:text-white">Certificat Médical</h3>
-                  <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60">Pour : {showCertificate.name}</p>
+                  <h3 className="font-bold text-[#29453E]">Certificat Médical</h3>
+                  <p className="text-xs text-[#3C6C5F]/60">{showCertificate.name}</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowCertificate(null)}
-                className="p-2 rounded-xl hover:bg-[#FFF3DA] dark:hover:bg-[#2a3f38] transition-all"
+                className="p-2 hover:bg-[#F8F6F3] rounded-xl transition-colors"
               >
-                <X size={22} className="text-[#3C6C5F]/60" />
+                <X size={18} className="text-[#3C6C5F]/40" />
               </button>
             </div>
 
-            <div className="flex-1 p-8 overflow-y-auto bg-[#FAFAFA] dark:bg-[#0d1a15] flex items-center justify-center min-h-[300px]">
+            <div className="flex-1 p-6 bg-[#F8F6F3] flex items-center justify-center min-h-[300px]">
               {showCertificate.url.toLowerCase().endsWith(".pdf") ? (
                 <iframe 
                   src={showCertificate.url} 
-                  className="w-full h-[60vh] rounded-2xl border-2 border-[#FFC490]/20 dark:border-[#FFC490]/10 bg-white dark:bg-[#1a2e28]"
+                  className="w-full h-[60vh] rounded-xl border border-[#E8E3DC] bg-white"
                   title="Certificat médical PDF"
                 />
               ) : (
-                <div className="relative max-w-full max-h-[60vh] rounded-2xl overflow-hidden border-2 border-[#FFC490]/20 dark:border-[#FFC490]/10 bg-white dark:bg-[#1a2e28] p-4">
+                <div className="max-w-full max-h-[60vh] rounded-xl overflow-hidden border border-[#E8E3DC] bg-white p-4">
                   <img 
                     src={showCertificate.url} 
                     alt="Certificat médical" 
-                    className="max-h-[55vh] object-contain rounded"
+                    className="max-h-[55vh] object-contain"
                   />
                 </div>
               )}
             </div>
 
-            <div className="p-5 border-t border-[#FFC490]/20 dark:border-[#FFC490]/10 flex justify-end gap-3 bg-gradient-to-r from-[#FFF3DA]/30 to-white dark:from-[#2a3f38]/30 dark:to-[#1a2e28]">
+            <div className="p-4 border-t border-[#E8E3DC] bg-[#FAFAFA] flex justify-end gap-3">
               <a 
                 href={showCertificate.url} 
                 download 
-                className="px-6 py-3 bg-gradient-to-r from-[#3C6C5F] to-[#29453E] text-white hover:from-[#29453E] hover:to-[#1f332e] font-bold rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-lg shadow-[#3C6C5F]/20 hover:shadow-xl"
+                className="px-5 py-2.5 bg-[#3C6C5F] text-white hover:bg-[#29453E] font-medium rounded-xl transition-all flex items-center gap-2 text-sm"
               >
-                <Download size={18} />
+                <Download size={16} />
                 Télécharger
               </a>
               <button 
                 onClick={() => setShowCertificate(null)}
-                className="px-6 py-3 border-2 border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:bg-[#FFF3DA] dark:hover:bg-[#2a3f38] text-[#29453E] dark:text-white font-bold rounded-2xl transition-all duration-300"
+                className="px-5 py-2.5 border border-[#E8E3DC] hover:bg-[#F8F6F3] text-[#29453E] font-medium rounded-xl transition-all text-sm"
               >
                 Fermer
               </button>
@@ -848,72 +848,6 @@ export default function PresenceSelfView({
           </div>
         </div>
       )}
-
-      {/* ============================================ */}
-      {/* QUICK TIPS - MODERN */}
-      {/* ============================================ */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="group bg-gradient-to-br from-emerald-50 to-emerald-100/30 dark:from-emerald-900/10 dark:to-emerald-900/5 rounded-2xl p-5 border border-emerald-200/30 dark:border-emerald-800/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <BadgeCheck size={24} className="text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[#29453E] dark:text-white">Présence</p>
-              <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60">Points validés automatiquement</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="group bg-gradient-to-br from-amber-50 to-amber-100/30 dark:from-amber-900/10 dark:to-amber-900/5 rounded-2xl p-5 border border-amber-200/30 dark:border-amber-800/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <HeartPulse size={24} className="text-amber-600" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[#29453E] dark:text-white">Maladie</p>
-              <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60">Justificatif obligatoire</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="group bg-gradient-to-br from-[#FFF3DA] to-[#FFC490]/10 dark:from-[#2a3f38] dark:to-[#2a3f38]/50 rounded-2xl p-5 border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#FFC490]/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Bell size={24} className="text-[#3C6C5F]" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[#29453E] dark:text-white">Notifications</p>
-              <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60">Suivez vos demandes</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideInFromTop {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes zoomIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        .animate-in {
-          animation: fadeIn 0.3s ease-out;
-        }
-        .slide-in-from-top-2 {
-          animation: slideInFromTop 0.2s ease-out;
-        }
-        .zoom-in-95 {
-          animation: zoomIn 0.2s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

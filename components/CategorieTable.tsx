@@ -1,9 +1,12 @@
 // components/CategorieTable.tsx
+
 "use client";
 
 import { useState } from "react";
 import {
   deleteCategorieAction,
+  deleteCategorieWithReassignmentAction,
+  getCategoriesForReassignment,
   updateCategorieAction,
 } from "@/actions/categorie";
 import { TypeCategorie } from "@prisma/client";
@@ -16,7 +19,9 @@ import {
   Wheat,
   Loader2,
   AlertCircle,
-  Search
+  Search,
+  RefreshCw,
+  ArrowRight,
 } from "lucide-react";
 
 type CategorieWithCount = {
@@ -33,6 +38,33 @@ interface CategorieTableProps {
   categories: CategorieWithCount[];
 }
 
+type DialogState =
+  | {
+      kind: "confirm-delete";
+      title: string;
+      message: string;
+      confirmLabel: string;
+    }
+  | {
+      kind: "confirm-reassign";
+      title: string;
+      message: string;
+      confirmLabel: string;
+      categorie: CategorieWithCount;
+    }
+  | {
+      kind: "info";
+      title: string;
+      message: string;
+      details?: {
+        animauxCount?: number;
+        culturesCount?: number;
+        animauxList?: any[];
+        culturesList?: any[];
+      };
+    }
+  | null;
+
 export default function CategorieTable({
   categories,
 }: CategorieTableProps) {
@@ -44,6 +76,17 @@ export default function CategorieTable({
   const [savingId, setSavingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dialog, setDialog] = useState<DialogState>(null);
+  const [pendingDelete, setPendingDelete] = useState<CategorieWithCount | null>(null);
+  const [reassignTargets, setReassignTargets] = useState<{
+    animaux: { id: number; nom: string; selectedCategory: number }[];
+    cultures: { id: number; nom: string; selectedCategory: number }[];
+  }>({ animaux: [], cultures: [] });
+  const [availableCategories, setAvailableCategories] = useState<{
+    animaux: any[];
+    cultures: any[];
+  }>({ animaux: [], cultures: [] });
+  const [isLoadingReassign, setIsLoadingReassign] = useState(false);
 
   const startEdit = (cat: CategorieWithCount) => {
     setEditingId(cat.id);
@@ -72,18 +115,162 @@ export default function CategorieTable({
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (
-      !confirm(
-        "Supprimer cette catégorie ? Cette action est irréversible."
-      )
-    )
+  const openDeleteDialog = async (cat: CategorieWithCount) => {
+    const linkedAnimaux = cat._count.animaux;
+    const linkedCultures = cat._count.cultures;
+
+    if (linkedAnimaux > 0 || linkedCultures > 0) {
+      // Vérifier s'il y a d'autres catégories disponibles pour la réaffectation
+      await checkReassignmentOptions(cat);
       return;
+    }
+
+    setPendingDelete(cat);
+    setDialog({
+      kind: "confirm-delete",
+      title: "Confirmer la suppression",
+      message:
+        "Cette action supprimera définitivement la catégorie. Vous pouvez continuer uniquement si elle n'est liée à aucun animal ni aucune culture.",
+      confirmLabel: "Supprimer",
+    });
+  };
+
+  const checkReassignmentOptions = async (cat: CategorieWithCount) => {
+    setIsLoadingReassign(true);
+
+     try {
+    const linkedAnimaux = cat._count.animaux;
+    const linkedCultures = cat._count.cultures;
+
+    const [animauxResult, culturesResult] = await Promise.all([
+      getCategoriesForReassignment(cat.id, TypeCategorie.ANIMAL),
+      getCategoriesForReassignment(cat.id, TypeCategorie.CULTURE),
+    ]);
+
+    const hasReassignmentOptions =
+      (animauxResult.success && animauxResult.data?.length > 0) ||
+      (culturesResult.success && culturesResult.data?.length > 0);
+
+      if (hasReassignmentOptions) {
+        const linkedAnimaux = cat._count.animaux;
+        const linkedCultures = cat._count.cultures;
+
+        // Simuler la récupération des éléments liés (à remplacer par un appel API réel)
+        // Dans un cas réel, vous récupéreriez ces données depuis votre API
+        const animauxList = linkedAnimaux > 0 
+          ? Array.from({ length: linkedAnimaux }, (_, i) => ({
+              id: i + 1,
+              nom: `Animal ${i + 1}`,
+            }))
+          : [];
+        const culturesList = linkedCultures > 0
+          ? Array.from({ length: linkedCultures }, (_, i) => ({
+              id: i + 1,
+              nom: `Culture ${i + 1}`,
+            }))
+          : [];
+
+        setReassignTargets({
+          animaux: animauxList.map((item: any) => ({
+            ...item,
+            selectedCategory: animauxResult.data?.[0]?.id || 0,
+          })),
+          cultures: culturesList.map((item: any) => ({
+            ...item,
+            selectedCategory: culturesResult.data?.[0]?.id || 0,
+          })),
+        });
+
+        setAvailableCategories({
+          animaux: animauxResult.data || [],
+          cultures: culturesResult.data || [],
+        });
+
+        setPendingDelete(cat);
+        setDialog({
+          kind: "confirm-reassign",
+          title: "Catégorie utilisée",
+          message: `La catégorie « ${cat.nom} » est encore utilisée par ${linkedAnimaux > 0 ? `${linkedAnimaux} animal${linkedAnimaux > 1 ? "aux" : ""}` : ""}${linkedAnimaux > 0 && linkedCultures > 0 ? " et " : ""}${linkedCultures > 0 ? `${linkedCultures} culture${linkedCultures > 1 ? "s" : ""}` : ""}. Choisissez une nouvelle catégorie pour ces éléments.`,
+          confirmLabel: "Réaffecter et supprimer",
+          categorie: cat,
+        });
+      } else {
+        // Pas d'options de réaffectation disponibles
+        const parts = [
+          linkedAnimaux > 0
+            ? `${linkedAnimaux} animal${linkedAnimaux > 1 ? "aux" : ""}`
+            : null,
+          linkedCultures > 0
+            ? `${linkedCultures} culture${linkedCultures > 1 ? "s" : ""}`
+            : null,
+        ].filter(Boolean);
+
+        setDialog({
+          kind: "info",
+          title: "Suppression bloquée",
+          message: `La catégorie « ${cat.nom} » est encore utilisée par ${parts.join(" et ")}. Aucune autre catégorie disponible pour la réaffectation. Supprimez d'abord ces éléments manuellement.`,
+          details: {
+            animauxCount: linkedAnimaux,
+            culturesCount: linkedCultures,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error checking reassignment options:", error);
+      setDialog({
+        kind: "info",
+        title: "Erreur",
+        message: "Une erreur est survenue lors de la vérification des options de réaffectation.",
+      });
+    } finally {
+      setIsLoadingReassign(false);
+    }
+  };
+
+  const handleDeleteWithReassignment = async () => {
+    if (!pendingDelete) return;
+
+    setDeletingId(pendingDelete.id);
+
+    // Préparer les données de réaffectation
+    const reassignData = {
+      animauxToReassign: reassignTargets.animaux
+        .filter(a => a.selectedCategory > 0)
+        .map(a => ({
+          id: a.id,
+          categorieId: a.selectedCategory,
+        })),
+      culturesToReassign: reassignTargets.cultures
+        .filter(c => c.selectedCategory > 0)
+        .map(c => ({
+          id: c.id,
+          categorieId: c.selectedCategory,
+        })),
+    };
+
+    const result = await deleteCategorieWithReassignmentAction(
+      pendingDelete.id,
+      reassignData
+    );
+
+    setDeletingId(null);
+    setDialog(null);
+    setPendingDelete(null);
+
+    if (!result.success) {
+      setDialog({
+        kind: "info",
+        title: "Suppression impossible",
+        message: result.error || "Erreur lors de la suppression.",
+      });
+    }
+  };
+
+  const handleDeleteSimple = async (id: number) => {
+    if (!confirm("Supprimer cette catégorie ? Cette action est irréversible.")) return;
 
     setDeletingId(id);
-
     const result = await deleteCategorieAction(id);
-
     setDeletingId(null);
 
     if (!result.success) {
@@ -91,11 +278,171 @@ export default function CategorieTable({
     }
   };
 
+  const handleReassignTargetChange = (
+    type: 'animaux' | 'cultures',
+    itemId: number,
+    newCategoryId: number
+  ) => {
+    setReassignTargets(prev => ({
+      ...prev,
+      [type]: prev[type].map(item =>
+        item.id === itemId
+          ? { ...item, selectedCategory: newCategoryId }
+          : item
+      ),
+    }));
+  };
+
   // Filtrer les catégories
   const filteredCategories = categories.filter(cat =>
     cat.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cat.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const renderDialog = () => {
+    if (!dialog) return null;
+
+    const isReassignDialog = dialog.kind === "confirm-reassign";
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-[#29453E]/55 backdrop-blur-sm">
+        <div className="w-full max-w-lg rounded-[28px] border border-white/30 bg-white shadow-2xl shadow-[#29453E]/20 overflow-hidden">
+          <div className="px-6 pt-6 pb-5 bg-gradient-to-br from-[#FAFAFA] to-white border-b border-[#E8E3DC]">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center ${
+                  dialog.kind === "confirm-delete"
+                    ? "bg-red-50 text-red-600"
+                    : dialog.kind === "confirm-reassign"
+                    ? "bg-[#FFF3DA] text-[#29453E]"
+                    : "bg-[#FFF3DA] text-[#29453E]"
+                }`}
+              >
+                {isReassignDialog ? (
+                  <RefreshCw className="w-5 h-5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5" />
+                )}
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-[#29453E]">
+                  {dialog.title}
+                </h4>
+                <p className="text-xs text-[#3C6C5F]/60">
+                  Gestion des catégories
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-5">
+            <p className="text-sm leading-6 text-[#29453E]/80">
+              {dialog.message}
+            </p>
+            {isReassignDialog && (
+              <div className="space-y-4 mt-4 max-h-60 overflow-y-auto">
+                {reassignTargets.animaux.length > 0 && (
+                  <div>
+                    <h5 className="text-sm font-semibold text-[#29453E] mb-2 flex items-center gap-2">
+                      <PawPrint size={14} />
+                      Animaux à réaffecter
+                    </h5>
+                    {reassignTargets.animaux.map((animal) => (
+                      <div key={animal.id} className="flex items-center gap-2 mb-2 bg-[#F8F6F3] p-2 rounded-lg">
+                        <span className="text-xs font-medium text-[#29453E] flex-1">{animal.nom}</span>
+                        <ArrowRight size={12} className="text-[#3C6C5F]" />
+                        <select
+                          value={animal.selectedCategory}
+                          onChange={(e) => handleReassignTargetChange('animaux', animal.id, Number(e.target.value))}
+                          className="px-2 py-1 text-xs rounded-lg border border-[#E8E3DC] bg-white focus:outline-none focus:border-[#3C6C5F]"
+                        >
+                          {availableCategories.animaux.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.nom}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {reassignTargets.cultures.length > 0 && (
+                  <div>
+                    <h5 className="text-sm font-semibold text-[#29453E] mb-2 flex items-center gap-2">
+                      <Wheat size={14} />
+                      Cultures à réaffecter
+                    </h5>
+                    {reassignTargets.cultures.map((culture) => (
+                      <div key={culture.id} className="flex items-center gap-2 mb-2 bg-[#F8F6F3] p-2 rounded-lg">
+                        <span className="text-xs font-medium text-[#29453E] flex-1">{culture.nom}</span>
+                        <ArrowRight size={12} className="text-[#3C6C5F]" />
+                        <select
+                          value={culture.selectedCategory}
+                          onChange={(e) => handleReassignTargetChange('cultures', culture.id, Number(e.target.value))}
+                          className="px-2 py-1 text-xs rounded-lg border border-[#E8E3DC] bg-white focus:outline-none focus:border-[#3C6C5F]"
+                        >
+                          {availableCategories.cultures.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.nom}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="px-6 pb-6 flex justify-end gap-3">
+            <button
+              onClick={() => {
+                setDialog(null);
+                setPendingDelete(null);
+              }}
+              className="px-4 py-2.5 rounded-xl border border-[#E8E3DC] text-sm font-semibold text-[#29453E] hover:bg-[#FAFAFA] transition-all"
+            >
+              {dialog.kind === "confirm-delete" ? "Annuler" : "Fermer"}
+            </button>
+
+            {dialog.kind === "confirm-delete" && (
+              <button
+                onClick={async () => {
+                  if (pendingDelete) {
+                    await handleDeleteSimple(pendingDelete.id);
+                    setDialog(null);
+                    setPendingDelete(null);
+                  }
+                }}
+                disabled={deletingId === pendingDelete?.id}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-50 transition-all shadow-lg shadow-red-600/20"
+              >
+                {deletingId === pendingDelete?.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : null}
+                {dialog.confirmLabel}
+              </button>
+            )}
+
+            {dialog.kind === "confirm-reassign" && (
+              <button
+                onClick={handleDeleteWithReassignment}
+                disabled={deletingId === pendingDelete?.id || isLoadingReassign}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#3C6C5F] text-white text-sm font-semibold hover:bg-[#29453E] disabled:opacity-50 transition-all shadow-lg shadow-[#3C6C5F]/20"
+              >
+                {deletingId === pendingDelete?.id || isLoadingReassign ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : null}
+                {dialog.confirmLabel}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   if (categories.length === 0) {
     return (
@@ -269,7 +616,7 @@ export default function CategorieTable({
                         </button>
 
                         <button
-                          onClick={() => handleDelete(cat.id)}
+                          onClick={() => openDeleteDialog(cat)}
                           disabled={deletingId === cat.id}
                           className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 disabled:opacity-50 transition-all border border-red-200"
                         >
@@ -289,6 +636,8 @@ export default function CategorieTable({
           </tbody>
         </table>
       </div>
+
+      {renderDialog()}
 
       {/* Footer avec pagination */}
       <div className="px-6 py-4 border-t border-[#E8E3DC] bg-[#FAFAFA] flex items-center justify-between">

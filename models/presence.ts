@@ -1,3 +1,5 @@
+// models/presence.ts
+
 import { db } from "@/lib/db";
 import { StatutPresence } from "@prisma/client";
 
@@ -10,6 +12,40 @@ export const PresenceModel = {
     const start = new Date(today);
     start.setHours(0, 0, 0, 0);
     const end = new Date(today);
+    end.setHours(23, 59, 59, 999);
+
+    return await db.presence.findMany({
+      where: {
+        date: {
+          gte: start,
+          lte: end,
+        },
+      },
+      include: {
+        utilisateur: {
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            role: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: {
+        date: "desc",
+      },
+    });
+  },
+
+  /**
+   * Fetch all presence records for a specific date
+   */
+  async getByDate(date: Date) {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(date);
     end.setHours(23, 59, 59, 999);
 
     return await db.presence.findMany({
@@ -148,5 +184,51 @@ export const PresenceModel = {
     });
 
     return stats;
+  },
+
+  /**
+   * Get worked days count for a user up to a specific date
+   */
+  async getWorkedDaysUpToDate(userId: number, date: Date) {
+    const targetDate = new Date(date);
+    targetDate.setHours(23, 59, 59, 999);
+
+    return await db.presence.count({
+      where: {
+        utilisateurId: userId,
+        statut: StatutPresence.PRESENT,
+        date: {
+          lte: targetDate,
+        },
+      },
+    });
+  },
+
+  /**
+   * Get worked days for all users up to a specific date
+   */
+  async getAllWorkedDaysUpToDate(date: Date) {
+    const targetDate = new Date(date);
+    targetDate.setHours(23, 59, 59, 999);
+
+    const users = await db.utilisateur.findMany({
+      select: { id: true },
+    });
+
+    const workedDaysMap: Record<number, number> = {};
+    for (const user of users) {
+      const count = await db.presence.count({
+        where: {
+          utilisateurId: user.id,
+          statut: StatutPresence.PRESENT,
+          date: {
+            lte: targetDate,
+          },
+        },
+      });
+      workedDaysMap[user.id] = count;
+    }
+
+    return workedDaysMap;
   },
 };

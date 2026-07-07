@@ -1,14 +1,14 @@
-// app/dashboard/page.tsx
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { UtilisateurModel } from "@/models/utilisateur";
 import { AnimalModel } from "@/models/animal";
 import { TraitementModel } from "@/models/traitement";
 import { FermeModel } from "@/models/ferme";
-import { TerrainModel } from "@/models/terrain";
 import { CultureModel } from "@/models/culture";
+import { EmployeModel } from "@/models/employe";
 import DashboardView from "@/components/DashboardView";
 import { Role } from "@prisma/client";
+import { TerrainModel } from "@/models/terrain";
 
 export const metadata = {
   title: "Tableau de Bord | Smart Farming",
@@ -32,11 +32,10 @@ export default async function DashboardPage() {
 
   const connectedUserIndex = users.findIndex((u) => u.id === currentUserId);
 
-  // Load veterinarian specific stats
   let vetStats = undefined;
   if (user.role === Role.VETERINAIRE || user.role === Role.ADMIN) {
     const allAnimals = await AnimalModel.getAll();
-    
+
     const sickAnimalsList = allAnimals.filter(
       (a) => a.etatSante === "Malade" || a.etatSante === "En traitement" || a.etatSante === "Blessé"
     );
@@ -53,7 +52,6 @@ export default async function DashboardPage() {
     };
   }
 
-  // Load agriculteur specific stats
   let agriStats = undefined;
   if (user.role === Role.AGRICULTEUR) {
     const [fermes, terrains, animaux, cultures] = await Promise.all([
@@ -71,10 +69,16 @@ export default async function DashboardPage() {
     };
   }
 
+  let employeInfo = undefined;
+  if (user.role === Role.EMPLOYE) {
+    employeInfo = await EmployeModel.getEmployeInfo(currentUserId);
+  }
+
   return (
     <DashboardView
       initialUsers={users}
       initialConnectedUserIndex={connectedUserIndex >= 0 ? connectedUserIndex : 0}
+      employeInfo={employeInfo}
       vetStats={vetStats}
       agriStats={agriStats}
     />

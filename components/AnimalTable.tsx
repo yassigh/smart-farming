@@ -210,7 +210,7 @@ export default function AnimalTable({ initialAnimaux, user }: Props) {
   const [animalToDelete, setAnimalToDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // ✅ Définir les permissions
+  //  Définir les permissions
   const canAdd = user.role === Role.ADMIN || user.role === Role.AGRICULTEUR;
   const canEdit = user.role === Role.ADMIN || user.role === Role.AGRICULTEUR || user.role === Role.VETERINAIRE;
   const canDelete = user.role === Role.ADMIN;

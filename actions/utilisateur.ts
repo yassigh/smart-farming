@@ -36,7 +36,7 @@ export async function addUtilisateurAction(
 
     const acteurNom = acteurId ? await getUserFullName(acteurId) : undefined;
     await notifyAllSystemUsers(
-      "👤 Nouvel utilisateur",
+      " Nouvel utilisateur",
       `L'utilisateur ${newUser.prenom} ${newUser.nom} a été ajouté (${newUser.role}).`,
       acteurNom
     );
@@ -62,7 +62,7 @@ export async function updateUtilisateurAction(
 
     const acteurNom = acteurId ? await getUserFullName(acteurId) : undefined;
     await notifyAllSystemUsers(
-      "✏️ Utilisateur modifié",
+      " Utilisateur modifié",
       `Le profil de ${updatedUser.prenom} ${updatedUser.nom} a été mis à jour.`,
       acteurNom
     );
@@ -102,7 +102,7 @@ export async function deleteUtilisateurAction(
     if (user) {
       const acteurNom = acteurId ? await getUserFullName(acteurId) : undefined;
       await notifyAllSystemUsers(
-        "🗑️ Utilisateur supprimé",
+        " Utilisateur supprimé",
         `L'utilisateur ${user.prenom} ${user.nom} a été supprimé.`,
         acteurNom
       );

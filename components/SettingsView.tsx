@@ -1,4 +1,5 @@
 // components/SettingsView.tsx
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -155,41 +156,61 @@ export default function SettingsView({ user }: any) {
   ];
 
   const infoCards = [
-    { icon: Mail, label: "Email", value: user.email, color: "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" },
-    { icon: Phone, label: "Téléphone", value: user.telephone || "-", color: "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400" },
-    { icon: Shield, label: "Rôle", value: user.role, color: "bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400" },
-    { icon: Award, label: "Statut", value: "Actif", color: "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" },
+    { 
+      icon: Mail, 
+      label: "Email", 
+      value: user.email, 
+      color: "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800" 
+    },
+    { 
+      icon: Phone, 
+      label: "Téléphone", 
+      value: user.telephone || "-", 
+      color: "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800" 
+    },
+    { 
+      icon: Shield, 
+      label: "Rôle", 
+      value: user.role, 
+      color: "bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800" 
+    },
+    { 
+      icon: Award, 
+      label: "Statut", 
+      value: "Actif", 
+      color: "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800" 
+    },
   ];
 
   return (
-    <div className="min-h-screen flex bg-primary">
+    <div className={`min-h-screen flex ${theme === 'dark' ? 'bg-[#0d1a15]' : 'bg-[#F8F6F3]'}`}>
       <Sidebar connectedUser={user} />
 
       <main className="flex-1 p-8 overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h1 className="text-4xl font-bold text-primary flex items-center gap-3">
-              <Settings className="w-8 h-8 text-secondary" />
+            <h1 className={`text-4xl font-bold flex items-center gap-3 ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+              <Settings className={`w-8 h-8 ${theme === 'dark' ? 'text-emerald-400' : 'text-[#3C6C5F]'}`} />
               Paramètres
             </h1>
-            <p className="text-muted mt-1">
+            <p className={`mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
               Gérez les préférences de votre compte
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}
-              className="bg-secondary/10 p-3 rounded-full hover:bg-secondary/20 transition-all"
+              className={`p-3 rounded-full transition-all ${theme === 'dark' ? 'bg-[#1a2e28] hover:bg-[#2a3f38]' : 'bg-[#FFF3DA] hover:bg-[#FFC490]/30'}`}
             >
               {theme === "light" ? (
-                <Moon className="w-5 h-5 text-secondary" />
+                <Moon className="w-5 h-5 text-[#3C6C5F]" />
               ) : (
                 <Sun className="w-5 h-5 text-yellow-400" />
               )}
             </button>
-            <div className="bg-secondary/10 px-4 py-2 rounded-full">
-              <span className="text-sm font-medium text-secondary">
+            <div className={`px-4 py-2 rounded-full ${theme === 'dark' ? 'bg-[#1a2e28] text-emerald-400' : 'bg-[#FFF3DA] text-[#3C6C5F]'}`}>
+              <span className="text-sm font-medium">
                 {user.role || "Utilisateur"}
               </span>
             </div>
@@ -206,10 +227,12 @@ export default function SettingsView({ user }: any) {
                 key={card.id}
                 onClick={() => setSelected(card.id)}
                 className={`
-                  relative group p-6 rounded-2xl transition-all duration-300 text-left
+                  relative group p-6 rounded-2xl transition-all duration-300 text-left border-2
                   ${isActive 
-                    ? 'bg-secondary text-white shadow-xl shadow-secondary/20 scale-[1.02]' 
-                    : 'bg-card hover:shadow-lg hover:scale-[1.02] border-2 border-transparent hover:border-secondary/20'
+                    ? 'bg-[#3C6C5F] border-[#3C6C5F] shadow-xl shadow-[#3C6C5F]/20 scale-[1.02]' 
+                    : theme === 'dark' 
+                      ? 'bg-[#1a2e28] border-[#2a3f38] hover:border-[#3C6C5F] hover:shadow-lg hover:scale-[1.02]'
+                      : 'bg-white border-[#E8E3DC] hover:border-[#3C6C5F] hover:shadow-lg hover:scale-[1.02]'
                   }
                 `}
               >
@@ -217,12 +240,12 @@ export default function SettingsView({ user }: any) {
                   w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all
                   ${isActive ? 'bg-white/20' : card.color}
                 `}>
-                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : card.color.split(' ')[1]}`} />
+                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : ''}`} />
                 </div>
-                <h3 className={`font-bold text-sm ${isActive ? 'text-white' : 'text-primary'}`}>
+                <h3 className={`font-bold text-sm ${isActive ? 'text-white' : theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
                   {card.title}
                 </h3>
-                <p className={`text-xs mt-1 ${isActive ? 'text-white/70' : 'text-muted'}`}>
+                <p className={`text-xs mt-1 ${isActive ? 'text-white/70' : theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
                   {card.description}
                 </p>
                 {isActive && (
@@ -237,7 +260,9 @@ export default function SettingsView({ user }: any) {
         <div className="mt-8">
           {/* Profile Section */}
           {selected === "profile" && (
-            <div className="bg-card rounded-3xl shadow-xl shadow-secondary/5 border border-theme overflow-hidden">
+            <div className={`rounded-3xl shadow-xl shadow-[#3C6C5F]/5 border overflow-hidden ${
+              theme === 'dark' ? 'bg-[#1a2e28] border-[#2a3f38]' : 'bg-white border-[#E8E3DC]'
+            }`}>
               <div className="bg-gradient-to-r from-[#29453E] to-[#3C6C5F] p-8">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                   <div className="flex items-center gap-6">
@@ -258,7 +283,7 @@ export default function SettingsView({ user }: any) {
                         disabled={uploadingImage}
                         className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg hover:scale-110 transition-transform disabled:opacity-50"
                       >
-                        <Camera className="w-4 h-4 text-secondary" />
+                        <Camera className="w-4 h-4 text-[#3C6C5F]" />
                       </button>
                       <input
                         ref={fileInputRef}
@@ -280,7 +305,7 @@ export default function SettingsView({ user }: any) {
                       <h2 className="text-3xl font-bold">
                         {user.prenom} {user.nom}
                       </h2>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm">
                           {user.role}
                         </span>
@@ -311,10 +336,14 @@ export default function SettingsView({ user }: any) {
                 {infoCards.map((card, index) => {
                   const Icon = card.icon;
                   return (
-                    <div key={index} className={`${card.color} rounded-2xl p-5 transition-all hover:scale-[1.02]`}>
-                      <Icon className="w-5 h-5 text-secondary mb-2" />
-                      <p className="text-xs text-muted uppercase tracking-wider">{card.label}</p>
-                      <p className="font-semibold text-primary mt-1">{card.value}</p>
+                    <div key={index} className={`${card.color} rounded-2xl p-5 transition-all hover:scale-[1.02] border`}>
+                      <Icon className={`w-5 h-5 mb-2 ${theme === 'dark' ? 'text-white/80' : ''}`} />
+                      <p className={`text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
+                        {card.label}
+                      </p>
+                      <p className={`font-semibold mt-1 ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                        {card.value}
+                      </p>
                     </div>
                   );
                 })}
@@ -323,54 +352,70 @@ export default function SettingsView({ user }: any) {
               {/* Edit Form */}
               {editMode && (
                 <div className="px-8 pb-8">
-                  <div className="border-t border-theme pt-8">
-                    <h3 className="text-xl font-bold text-primary mb-6">
+                  <div className={`border-t pt-8 ${theme === 'dark' ? 'border-[#2a3f38]' : 'border-[#E8E3DC]'}`}>
+                    <h3 className={`text-xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
                       Modifier mes informations
                     </h3>
                     <form onSubmit={handleUpdate} className="space-y-6">
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
+                          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
                             Prénom
                           </label>
                           <input
                             value={prenom}
                             onChange={(e) => setPrenom(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-theme bg-input focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition-all text-primary"
+                            className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all ${
+                              theme === 'dark' 
+                                ? 'border-[#2a3f38] bg-[#0d1a15] text-white focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20' 
+                                : 'border-[#E8E3DC] bg-[#FAFAFA] text-[#29453E] focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20'
+                            }`}
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
+                          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
                             Nom
                           </label>
                           <input
                             value={nom}
                             onChange={(e) => setNom(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-theme bg-input focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition-all text-primary"
+                            className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all ${
+                              theme === 'dark' 
+                                ? 'border-[#2a3f38] bg-[#0d1a15] text-white focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20' 
+                                : 'border-[#E8E3DC] bg-[#FAFAFA] text-[#29453E] focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20'
+                            }`}
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
+                          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
                             Email
                           </label>
                           <input
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-theme bg-input focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition-all text-primary"
+                            className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all ${
+                              theme === 'dark' 
+                                ? 'border-[#2a3f38] bg-[#0d1a15] text-white focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20' 
+                                : 'border-[#E8E3DC] bg-[#FAFAFA] text-[#29453E] focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20'
+                            }`}
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
+                          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
                             Téléphone
                           </label>
                           <input
                             value={telephone}
                             onChange={(e) => setTelephone(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-theme bg-input focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition-all text-primary"
+                            className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all ${
+                              theme === 'dark' 
+                                ? 'border-[#2a3f38] bg-[#0d1a15] text-white focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20' 
+                                : 'border-[#E8E3DC] bg-[#FAFAFA] text-[#29453E] focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20'
+                            }`}
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-primary mb-2">
+                          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
                             Nouveau mot de passe
                           </label>
                           <div className="relative">
@@ -379,12 +424,18 @@ export default function SettingsView({ user }: any) {
                               value={motDePasse}
                               onChange={(e) => setMotDePasse(e.target.value)}
                               placeholder="••••••••"
-                              className="w-full px-4 py-3 rounded-xl border-2 border-theme bg-input focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition-all text-primary pr-12"
+                              className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all pr-12 ${
+                                theme === 'dark' 
+                                  ? 'border-[#2a3f38] bg-[#0d1a15] text-white focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20' 
+                                  : 'border-[#E8E3DC] bg-[#FAFAFA] text-[#29453E] focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20'
+                              }`}
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary"
+                              className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                                theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-[#3C6C5F]/60 hover:text-[#3C6C5F]'
+                              }`}
                             >
                               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
@@ -395,7 +446,7 @@ export default function SettingsView({ user }: any) {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="flex items-center gap-2 bg-secondary hover:bg-[#29453E] text-white px-8 py-3 rounded-xl transition-all shadow-lg shadow-secondary/20 disabled:opacity-50"
+                          className="flex items-center gap-2 bg-[#3C6C5F] hover:bg-[#29453E] text-white px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#3C6C5F]/20 disabled:opacity-50"
                         >
                           <Save className="w-5 h-5" />
                           {loading ? "Enregistrement..." : "Enregistrer"}
@@ -403,13 +454,21 @@ export default function SettingsView({ user }: any) {
                         <button
                           type="button"
                           onClick={() => setEditMode(false)}
-                          className="px-6 py-3 rounded-xl border-2 border-theme hover:border-secondary transition-all text-primary"
+                          className={`px-6 py-3 rounded-xl border-2 transition-all ${
+                            theme === 'dark' 
+                              ? 'border-[#2a3f38] text-gray-300 hover:border-[#3C6C5F] hover:text-white' 
+                              : 'border-[#E8E3DC] text-[#29453E] hover:border-[#3C6C5F]'
+                          }`}
                         >
                           Annuler
                         </button>
                       </div>
                       {successMessage && (
-                        <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-3 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center gap-2">
+                        <div className={`px-4 py-3 rounded-xl border flex items-center gap-2 ${
+                          theme === 'dark' 
+                            ? 'bg-emerald-900/30 border-emerald-800 text-emerald-400' 
+                            : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                        }`}>
                           <Check className="w-5 h-5" />
                           {successMessage}
                         </div>
@@ -423,14 +482,20 @@ export default function SettingsView({ user }: any) {
 
           {/* Theme Section */}
           {selected === "theme" && (
-            <div className="bg-card rounded-3xl shadow-xl shadow-secondary/5 border border-theme p-8">
+            <div className={`rounded-3xl shadow-xl shadow-[#3C6C5F]/5 border p-8 ${
+              theme === 'dark' ? 'bg-[#1a2e28] border-[#2a3f38]' : 'bg-white border-[#E8E3DC]'
+            }`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
                   <Palette className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-primary">Apparence</h2>
-                  <p className="text-muted">Choisissez votre thème préféré</p>
+                  <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                    Apparence
+                  </h2>
+                  <p className={theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}>
+                    Choisissez votre thème préféré
+                  </p>
                 </div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
@@ -439,18 +504,22 @@ export default function SettingsView({ user }: any) {
                   className={`
                     p-8 rounded-2xl border-2 transition-all text-center
                     ${theme === "light" 
-                      ? 'border-secondary bg-[#FFF3DA] dark:bg-[#2d3748] shadow-lg' 
-                      : 'border-theme hover:border-secondary'
+                      ? 'border-[#3C6C5F] bg-[#FFF3DA] shadow-lg' 
+                      : 'border-[#2a3f38] hover:border-[#3C6C5F]'
                     }
                   `}
                 >
                   <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 mx-auto flex items-center justify-center text-3xl">
                     ☀️
                   </div>
-                  <h3 className="font-bold mt-4 text-primary">Mode Clair</h3>
-                  <p className="text-sm text-muted">Thème lumineux</p>
+                  <h3 className={`font-bold mt-4 ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                    Mode Clair
+                  </h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
+                    Thème lumineux
+                  </p>
                   {theme === "light" && (
-                    <div className="mt-3 inline-flex items-center gap-1 bg-secondary text-white px-3 py-1 rounded-full text-xs">
+                    <div className="mt-3 inline-flex items-center gap-1 bg-[#3C6C5F] text-white px-3 py-1 rounded-full text-xs">
                       <Check className="w-3 h-3" /> Actif
                     </div>
                   )}
@@ -460,22 +529,22 @@ export default function SettingsView({ user }: any) {
                   className={`
                     p-8 rounded-2xl border-2 transition-all text-center
                     ${theme === "dark" 
-                      ? 'border-secondary bg-[#29453E] shadow-lg' 
-                      : 'border-theme hover:border-secondary'
+                      ? 'border-[#3C6C5F] bg-[#29453E] shadow-lg' 
+                      : 'border-[#E8E3DC] hover:border-[#3C6C5F]'
                     }
                   `}
                 >
                   <div className="w-16 h-16 rounded-full bg-purple-900/20 dark:bg-purple-500/20 mx-auto flex items-center justify-center text-3xl">
                     🌙
                   </div>
-                  <h3 className={`font-bold mt-4 ${theme === "dark" ? 'text-white' : 'text-primary'}`}>
+                  <h3 className={`font-bold mt-4 ${theme === "dark" ? 'text-white' : 'text-[#29453E]'}`}>
                     Mode Sombre
                   </h3>
-                  <p className={`text-sm ${theme === "dark" ? 'text-white/60' : 'text-muted'}`}>
+                  <p className={`text-sm ${theme === "dark" ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
                     Thème nocturne
                   </p>
                   {theme === "dark" && (
-                    <div className="mt-3 inline-flex items-center gap-1 bg-secondary text-white px-3 py-1 rounded-full text-xs">
+                    <div className="mt-3 inline-flex items-center gap-1 bg-[#3C6C5F] text-white px-3 py-1 rounded-full text-xs">
                       <Check className="w-3 h-3" /> Actif
                     </div>
                   )}
@@ -486,14 +555,20 @@ export default function SettingsView({ user }: any) {
 
           {/* Language Section */}
           {selected === "language" && (
-            <div className="bg-card rounded-3xl shadow-xl shadow-secondary/5 border border-theme p-8">
+            <div className={`rounded-3xl shadow-xl shadow-[#3C6C5F]/5 border p-8 ${
+              theme === 'dark' ? 'bg-[#1a2e28] border-[#2a3f38]' : 'bg-white border-[#E8E3DC]'
+            }`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
                   <Globe className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-primary">Langue</h2>
-                  <p className="text-muted">Choisissez votre langue préférée</p>
+                  <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                    Langue
+                  </h2>
+                  <p className={theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}>
+                    Choisissez votre langue préférée
+                  </p>
                 </div>
               </div>
               <div className="grid md:grid-cols-3 gap-4">
@@ -508,15 +583,19 @@ export default function SettingsView({ user }: any) {
                     className={`
                       p-6 rounded-2xl border-2 transition-all text-center
                       ${language === lang.code 
-                        ? 'border-secondary bg-[#FFF3DA] dark:bg-[#2d3748] shadow-lg' 
-                        : 'border-theme hover:border-secondary'
+                        ? 'border-[#3C6C5F] bg-[#FFF3DA] dark:bg-[#2a3f38] shadow-lg' 
+                        : theme === 'dark' 
+                          ? 'border-[#2a3f38] hover:border-[#3C6C5F]' 
+                          : 'border-[#E8E3DC] hover:border-[#3C6C5F]'
                       }
                     `}
                   >
                     <div className="text-4xl mb-3">{lang.flag}</div>
-                    <h3 className="font-bold text-primary">{lang.label}</h3>
+                    <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                      {lang.label}
+                    </h3>
                     {language === lang.code && (
-                      <div className="mt-3 inline-flex items-center gap-1 bg-secondary text-white px-3 py-1 rounded-full text-xs">
+                      <div className="mt-3 inline-flex items-center gap-1 bg-[#3C6C5F] text-white px-3 py-1 rounded-full text-xs">
                         <Check className="w-3 h-3" /> Sélectionné
                       </div>
                     )}
@@ -528,14 +607,20 @@ export default function SettingsView({ user }: any) {
 
           {/* Notifications Section */}
           {selected === "notifications" && (
-            <div className="bg-card rounded-3xl shadow-xl shadow-secondary/5 border border-theme p-8">
+            <div className={`rounded-3xl shadow-xl shadow-[#3C6C5F]/5 border p-8 ${
+              theme === 'dark' ? 'bg-[#1a2e28] border-[#2a3f38]' : 'bg-white border-[#E8E3DC]'
+            }`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
                   <Bell className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-primary">Notifications</h2>
-                  <p className="text-muted">Gérez vos alertes</p>
+                  <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                    Notifications
+                  </h2>
+                  <p className={theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}>
+                    Gérez vos alertes
+                  </p>
                 </div>
               </div>
               <div className="space-y-4">
@@ -545,14 +630,22 @@ export default function SettingsView({ user }: any) {
                   { title: "Alertes de sécurité", description: "Notifications de sécurité importantes", enabled: true },
                   { title: "Rapports hebdomadaires", description: "Récapitulatif hebdomadaire", enabled: false },
                 ].map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 rounded-xl border border-theme hover:border-secondary transition-all">
+                  <div key={index} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                    theme === 'dark' 
+                      ? 'border-[#2a3f38] hover:border-[#3C6C5F]' 
+                      : 'border-[#E8E3DC] hover:border-[#3C6C5F]'
+                  }`}>
                     <div>
-                      <h4 className="font-semibold text-primary">{item.title}</h4>
-                      <p className="text-sm text-muted">{item.description}</p>
+                      <h4 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                        {item.title}
+                      </h4>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
+                        {item.description}
+                      </p>
                     </div>
                     <div className={`
                       w-12 h-6 rounded-full p-1 cursor-pointer transition-all
-                      ${item.enabled ? 'bg-secondary' : 'bg-gray-300 dark:bg-gray-600'}
+                      ${item.enabled ? 'bg-[#3C6C5F]' : 'bg-gray-300 dark:bg-gray-600'}
                     `}>
                       <div className={`
                         w-4 h-4 rounded-full bg-white transition-all
@@ -567,49 +660,75 @@ export default function SettingsView({ user }: any) {
 
           {/* Security Section */}
           {selected === "security" && (
-            <div className="bg-card rounded-3xl shadow-xl shadow-secondary/5 border border-theme p-8">
+            <div className={`rounded-3xl shadow-xl shadow-[#3C6C5F]/5 border p-8 ${
+              theme === 'dark' ? 'bg-[#1a2e28] border-[#2a3f38]' : 'bg-white border-[#E8E3DC]'
+            }`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
                   <Shield className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-primary">Sécurité</h2>
-                  <p className="text-muted">Paramètres de sécurité du compte</p>
+                  <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                    Sécurité
+                  </h2>
+                  <p className={theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}>
+                    Paramètres de sécurité du compte
+                  </p>
                 </div>
               </div>
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <div className={`p-4 rounded-xl border ${
+                  theme === 'dark' 
+                    ? 'bg-red-900/20 border-red-800' 
+                    : 'bg-red-50 border-red-200'
+                }`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-semibold text-red-700 dark:text-red-400">Authentification à deux facteurs</h4>
-                      <p className="text-sm text-red-600/70 dark:text-red-400/70">Ajoutez une couche de sécurité supplémentaire</p>
+                      <h4 className={`font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-700'}`}>
+                        Authentification à deux facteurs
+                      </h4>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-red-400/70' : 'text-red-600/70'}`}>
+                        Ajoutez une couche de sécurité supplémentaire
+                      </p>
                     </div>
                     <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all">
                       Activer
                     </button>
                   </div>
                 </div>
-                <div className="p-4 rounded-xl border border-theme hover:border-secondary transition-all">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-primary">Sessions actives</h4>
-                      <p className="text-sm text-muted">Gérez vos sessions</p>
-                    </div>
-                    <button className="text-secondary hover:text-primary font-medium">
-                      Voir tout
-                    </button>
+                <div className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                  theme === 'dark' 
+                    ? 'border-[#2a3f38] hover:border-[#3C6C5F]' 
+                    : 'border-[#E8E3DC] hover:border-[#3C6C5F]'
+                }`}>
+                  <div>
+                    <h4 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                      Sessions actives
+                    </h4>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
+                      Gérez vos sessions
+                    </p>
                   </div>
+                  <button className={`font-medium ${theme === 'dark' ? 'text-emerald-400 hover:text-emerald-300' : 'text-[#3C6C5F] hover:text-[#29453E]'}`}>
+                    Voir tout
+                  </button>
                 </div>
-                <div className="p-4 rounded-xl border border-theme hover:border-secondary transition-all">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-primary">Changer le mot de passe</h4>
-                      <p className="text-sm text-muted">Modifiez votre mot de passe</p>
-                    </div>
-                    <button className="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-[#29453E] transition-all">
-                      Modifier
-                    </button>
+                <div className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                  theme === 'dark' 
+                    ? 'border-[#2a3f38] hover:border-[#3C6C5F]' 
+                    : 'border-[#E8E3DC] hover:border-[#3C6C5F]'
+                }`}>
+                  <div>
+                    <h4 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
+                      Changer le mot de passe
+                    </h4>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
+                      Modifiez votre mot de passe
+                    </p>
                   </div>
+                  <button className="bg-[#3C6C5F] text-white px-4 py-2 rounded-lg hover:bg-[#29453E] transition-all">
+                    Modifier
+                  </button>
                 </div>
               </div>
             </div>

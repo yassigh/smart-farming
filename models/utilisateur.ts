@@ -13,7 +13,7 @@ export interface CreateUtilisateurInput {
   image?: string;
 }
 
-// 🔐 Fonctions de hachage
+//  Fonctions de hachage
 export async function hashPassword(password: string): Promise<string> {
   return await hash(password, 12);
 }
@@ -22,7 +22,7 @@ export async function comparePassword(password: string, hashed: string): Promise
   return await compare(password, hashed);
 }
 
-// 🔑 Génération de token JWT
+//  Génération de token JWT
 export function generateResetToken(email: string): string {
   return jwt.sign(
     { email, purpose: 'reset-password' },
@@ -86,7 +86,7 @@ export const UtilisateurModel = {
     });
   },
 
-  // 🔐 Nouveaux : 2FA
+  //  Nouveaux : 2FA
   async enableTwoFactor(userId: number, secret: string) {
     return await db.utilisateur.update({
       where: { id: userId },
@@ -107,7 +107,7 @@ export const UtilisateurModel = {
     });
   },
 
-  // 🔑 Nouveaux : Reset Password
+  //  Nouveaux : Reset Password
   async setResetToken(email: string, token: string, expiry: Date) {
     return await db.utilisateur.update({
       where: { email },

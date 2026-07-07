@@ -57,7 +57,7 @@ export async function addAnimalAction(
       if (proprietaire && proprietaire.id !== acteurId) {
         await createNotificationForUser(
           proprietaire.id,
-          "✅ Animal enregistré sur votre ferme",
+          " Animal enregistré sur votre ferme",
           `${acteurNom ?? "Un utilisateur"} a ajouté l'animal ${animal.type} (${animal.race}) sur votre ferme.`
         );
       }

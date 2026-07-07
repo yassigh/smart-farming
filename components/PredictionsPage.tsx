@@ -873,11 +873,8 @@ export default function PredictionsPage({ user, fermes, predictions, fermeId: in
                 Distribution des types
               </h4>
               <div className="space-y-3">
-                {predictions.reduce((acc: any, p: any) => {
-                  acc[p.type] = (acc[p.type] || 0) + 1;
-                  return acc;
-                }, {}) && Object.entries(
-                  predictions.reduce((acc: any, p: any) => {
+                {Object.entries(
+                  predictions.reduce((acc: Record<string, number>, p: any) => {
                     acc[p.type] = (acc[p.type] || 0) + 1;
                     return acc;
                   }, {}) || {}
@@ -893,7 +890,7 @@ export default function PredictionsPage({ user, fermes, predictions, fermeId: in
                         style={{ width: `${((count as number) / (predictions.length || 1)) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs font-bold text-[#29453E] dark:text-white">{count}</span>
+                    <span className="text-xs font-bold text-[#29453E] dark:text-white">{count as number}</span>
                   </div>
                 ))}
               </div>

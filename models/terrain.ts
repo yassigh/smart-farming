@@ -1,13 +1,7 @@
 import { db } from "@/lib/db";
 
 export const TerrainModel = {
-  async getAll() {
-    return db.terrain.findMany({
-      include: {
-        ferme: true,
-      },
-    });
-  },
+
 
   async getById(id: number) {
     return db.terrain.findUnique({
@@ -18,35 +12,73 @@ export const TerrainModel = {
     });
   },
 
-  async getByAgriculteur(utilisateurId: number) {
-    return db.terrain.findMany({
-      where: {
-        ferme: {
-          agriculteurId: utilisateurId,
+async getAll() {
+  return db.terrain.findMany({
+    include: {
+      ferme: true,
+      animaux: {
+        include: {
+          categorie: true,
         },
       },
-      include: {
-        ferme: true,
+      cultures: {
+        include: {
+          categorie: true,
+        },
       },
-    });
-  },
+    },
+  });
+},
 
-  async getByEmploye(utilisateurId: number) {
-    return db.terrain.findMany({
-      where: {
-        ferme: {
-          employes: {
-            some: {
-              employeId: utilisateurId,
-            },
+async getByAgriculteur(utilisateurId: number) {
+  return db.terrain.findMany({
+    where: {
+      ferme: {
+        agriculteurId: utilisateurId,
+      },
+    },
+    include: {
+      ferme: true,
+      animaux: {
+        include: {
+          categorie: true,
+        },
+      },
+      cultures: {
+        include: {
+          categorie: true,
+        },
+      },
+    },
+  });
+},
+
+async getByEmploye(utilisateurId: number) {
+  return db.terrain.findMany({
+    where: {
+      ferme: {
+        employes: {
+          some: {
+            employeId: utilisateurId,
           },
         },
       },
-      include: {
-        ferme: true,
+    },
+    include: {
+      ferme: true,
+      animaux: {
+        include: {
+          categorie: true,
+        },
       },
-    });
-  },
+      cultures: {
+        include: {
+          categorie: true,
+        },
+      },
+    },
+  });
+},
 
   async getByVeterinaire() {
     return db.terrain.findMany({

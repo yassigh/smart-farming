@@ -7,7 +7,6 @@ import { Role } from "@prisma/client";
 
 export default async function TerrainsPage() {
   const cookieStore = await cookies();
-
   const sessionUserId = cookieStore.get("session_user_id")?.value;
 
   if (!sessionUserId) {
@@ -31,9 +30,11 @@ export default async function TerrainsPage() {
       terrains = await TerrainModel.getByAgriculteur(user.id);
       break;
 
-    case Role.EMPLOYE:
-      terrains = await TerrainModel.getByEmploye(user.id);
+    case Role.EMPLOYE: {
+      const terrainsEmploye = await TerrainModel.getByEmploye(user.id);
+      terrains = terrainsEmploye.length > 0 ? terrainsEmploye : await TerrainModel.getAll();
       break;
+    }
 
     case Role.VETERINAIRE:
       terrains = await TerrainModel.getByVeterinaire();
@@ -43,10 +44,5 @@ export default async function TerrainsPage() {
       terrains = [];
   }
 
-  return (
-    <TerrainTable
-      initialTerrains={terrains}
-      user={user}
-    />
-  );
+  return <TerrainTable initialTerrains={terrains} user={user} />;
 }

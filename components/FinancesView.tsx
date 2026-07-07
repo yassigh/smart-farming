@@ -1,4 +1,5 @@
 // components/FinancesView.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -39,30 +40,10 @@ import {
   Receipt,
   ArrowUpRight,
   ArrowDownRight,
-  Building2,
-  Clock as ClockIcon,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  Wallet as WalletIcon,
-  Plus as PlusIcon,
-  Trash2 as Trash2Icon,
-  Calendar as CalendarIcon,
-  Tag as TagIcon,
-  FileText as FileTextIcon,
-  HandCoins as HandCoinsIcon,
-  BarChart3 as BarChart3Icon,
-  ChevronRight as ChevronRightIcon,
-  Users as UsersIcon,
-  CreditCard as CreditCardIcon,
-  Receipt as ReceiptIcon,
-  ArrowUpRight as ArrowUpRightIcon,
-  ArrowDownRight as ArrowDownRightIcon,
   Loader2,
   RefreshCw,
-  Zap,
-  Sparkles,
   AlertCircle,
-  BadgeCheck,
+  X,
 } from "lucide-react";
 
 type Tab = "depenses" | "revenus";
@@ -98,30 +79,30 @@ interface FinancesViewProps {
 }
 
 const LABEL_TYPE: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  SEMENCES: { label: "Semences", icon: <Sprout size={14} />, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  ENGRAIS: { label: "Engrais", icon: <Package size={14} />, color: "bg-blue-50 text-blue-700 border-blue-200" },
-  NOURRITURE_ANIMAUX: { label: "Nourriture animaux", icon: <Rabbit size={14} />, color: "bg-amber-50 text-amber-700 border-amber-200" },
-  SALAIRES: { label: "Salaires", icon: <UsersIcon size={14} />, color: "bg-purple-50 text-purple-700 border-purple-200" },
-  MEDICAMENTS: { label: "Médicaments", icon: <Syringe size={14} />, color: "bg-rose-50 text-rose-700 border-rose-200" },
-  EQUIPEMENT: { label: "Équipement", icon: <Wrench size={14} />, color: "bg-gray-50 text-gray-700 border-gray-200" },
-  CARBURANT: { label: "Carburant", icon: <Fuel size={14} />, color: "bg-orange-50 text-orange-700 border-orange-200" },
-  AUTRE: { label: "Autre", icon: <Package size={14} />, color: "bg-[#FFF3DA] text-[#29453E] border-[#FFC490]" },
+  SEMENCES: { label: "Semences", icon: <Sprout size={12} />, color: "bg-emerald-50 text-emerald-700" },
+  ENGRAIS: { label: "Engrais", icon: <Package size={12} />, color: "bg-blue-50 text-blue-700" },
+  NOURRITURE_ANIMAUX: { label: "Nourriture", icon: <Rabbit size={12} />, color: "bg-amber-50 text-amber-700" },
+  SALAIRES: { label: "Salaires", icon: <Users size={12} />, color: "bg-purple-50 text-purple-700" },
+  MEDICAMENTS: { label: "Médicaments", icon: <Syringe size={12} />, color: "bg-rose-50 text-rose-700" },
+  EQUIPEMENT: { label: "Équipement", icon: <Wrench size={12} />, color: "bg-gray-50 text-gray-700" },
+  CARBURANT: { label: "Carburant", icon: <Fuel size={12} />, color: "bg-orange-50 text-orange-700" },
+  AUTRE: { label: "Autre", icon: <Package size={12} />, color: "bg-[#FFF3DA] text-[#29453E]" },
 };
 
 const LABEL_SOURCE: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  VENTE_LAIT: { label: "Vente de lait", icon: <Milk size={14} />, color: "bg-blue-50 text-blue-700 border-blue-200" },
-  VENTE_RECOLTES: { label: "Vente de récoltes", icon: <Wheat size={14} />, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  VENTE_ANIMAUX: { label: "Vente d'animaux", icon: <Rabbit size={14} />, color: "bg-amber-50 text-amber-700 border-amber-200" },
-  SUBVENTIONS: { label: "Subventions", icon: <HandCoinsIcon size={14} />, color: "bg-green-50 text-green-700 border-green-200" },
-  VENTE_OEUFS: { label: "Vente d'œufs", icon: <Egg size={14} />, color: "bg-yellow-50 text-yellow-700 border-yellow-200" },
-  AGROTOURISME: { label: "Agrotourisme", icon: <Tent size={14} />, color: "bg-teal-50 text-teal-700 border-teal-200" },
-  AUTRE: { label: "Autre", icon: <Store size={14} />, color: "bg-[#FFF3DA] text-[#29453E] border-[#FFC490]" },
+  VENTE_LAIT: { label: "Vente de lait", icon: <Milk size={12} />, color: "bg-blue-50 text-blue-700" },
+  VENTE_RECOLTES: { label: "Vente de récoltes", icon: <Wheat size={12} />, color: "bg-emerald-50 text-emerald-700" },
+  VENTE_ANIMAUX: { label: "Vente d'animaux", icon: <Rabbit size={12} />, color: "bg-amber-50 text-amber-700" },
+  SUBVENTIONS: { label: "Subventions", icon: <HandCoins size={12} />, color: "bg-green-50 text-green-700" },
+  VENTE_OEUFS: { label: "Vente d'œufs", icon: <Egg size={12} />, color: "bg-yellow-50 text-yellow-700" },
+  AGROTOURISME: { label: "Agrotourisme", icon: <Tent size={12} />, color: "bg-teal-50 text-teal-700" },
+  AUTRE: { label: "Autre", icon: <Store size={12} />, color: "bg-[#FFF3DA] text-[#29453E]" },
 };
 
 function formatMontant(n: number) {
   return new Intl.NumberFormat("fr-DZ", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(n);
 }
 
@@ -168,380 +149,300 @@ export default function FinancesView({
     window.location.reload();
   };
 
-  const getSoldeStatus = () => {
-    if (solde > 0) return { label: "Bénéficiaire", color: "text-emerald-600", icon: TrendingUpIcon };
-    if (solde < 0) return { label: "Déficitaire", color: "text-red-600", icon: TrendingDownIcon };
-    return { label: "Équilibre", color: "text-gray-600", icon: WalletIcon };
-  };
-
-  const soldeStatus = getSoldeStatus();
-  const SoldeIcon = soldeStatus.icon;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FAFAFA] to-[#F0F2ED] dark:from-[#0d1a15] dark:to-[#0d1a15] p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-
-        {/* ============================================ */}
-        {/* HEADER MODERNE */}
-        {/* ============================================ */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-6 space-y-6 bg-[#F8F6F3] min-h-screen">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-[#3C6C5F] rounded-2xl">
+            <DollarSign className="text-white" size={24} />
+          </div>
           <div>
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-[#3C6C5F] to-[#29453E] rounded-2xl shadow-lg shadow-[#3C6C5F]/20">
-                <DollarSign className="text-white" size={28} />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-[#29453E] dark:text-white">
-                  Finances
-                </h1>
-                <p className="text-sm text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mt-0.5">
-                  Suivez vos dépenses et revenus agricoles en temps réel
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="p-3 bg-white dark:bg-[#1a2e28] rounded-2xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
-            >
-              <RefreshCw size={20} className={`text-[#3C6C5F] ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
-            <span className="px-4 py-2.5 bg-gradient-to-r from-[#FFF3DA] to-[#FFC490]/20 dark:from-[#2a3f38] dark:to-[#2a3f38]/50 rounded-2xl border border-[#FFC490]/30 dark:border-[#FFC490]/10 text-sm font-bold text-[#29453E] dark:text-white flex items-center gap-2 shadow-sm">
-              <Calendar size={16} className="text-[#3C6C5F]" />
-              {new Date().toLocaleDateString("fr-DZ", { month: "long", year: "numeric" })}
-            </span>
+            <h1 className="text-2xl font-bold text-[#29453E]">Finances</h1>
+            <p className="text-sm text-[#3C6C5F]/60">Gestion des transactions</p>
           </div>
         </div>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="p-2.5 bg-white rounded-xl border border-[#E8E3DC] hover:border-[#3C6C5F] transition-all hover:shadow-md disabled:opacity-50"
+        >
+          <RefreshCw size={18} className={`text-[#3C6C5F] ${isRefreshing ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
 
-        {/* ============================================ */}
-        {/* KPI CARDS MODERNES */}
-        {/* ============================================ */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          {/* Revenus */}
-          <div className="group bg-white dark:bg-[#1a2e28] rounded-3xl p-6 shadow-lg border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 font-bold uppercase tracking-wider">
-                  Total Revenus
-                </p>
-                <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
-                  +{formatMontant(totalRevenus)}
-                </p>
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
-                <ArrowUpRightIcon size={26} className="text-white" />
-              </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl p-5 border border-[#E8E3DC]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-[#3C6C5F]/60 uppercase tracking-wider">Revenus</p>
+              <p className="text-2xl font-bold text-emerald-600 mt-1">+{formatMontant(totalRevenus)}</p>
             </div>
-            <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mt-2 font-medium">
-              {revenus.length} entrée(s)
-            </p>
-          </div>
-
-          {/* Dépenses */}
-          <div className="group bg-white dark:bg-[#1a2e28] rounded-3xl p-6 shadow-lg border border-[#FFC490]/20 dark:border-[#FFC490]/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 font-bold uppercase tracking-wider">
-                  Total Dépenses
-                </p>
-                <p className="text-3xl font-extrabold text-red-600 dark:text-red-400 mt-1">
-                  -{formatMontant(totalDepenses)}
-                </p>
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-110 transition-transform">
-                <ArrowDownRightIcon size={26} className="text-white" />
-              </div>
+            <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <TrendingUp size={20} className="text-emerald-600" />
             </div>
-            <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mt-2 font-medium">
-              {depenses.length} entrée(s)
-            </p>
           </div>
-
-          {/* Solde */}
-          <div className={`group bg-white dark:bg-[#1a2e28] rounded-3xl p-6 shadow-lg border-2 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 ${
-            solde >= 0 ? 'border-emerald-200 dark:border-emerald-800' : 'border-red-200 dark:border-red-800'
-          }`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 font-bold uppercase tracking-wider">
-                  Solde Net
-                </p>
-                <p className={`text-3xl font-extrabold mt-1 ${
-                  solde >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-                }`}>
-                  {solde >= 0 ? '+' : ''}{formatMontant(solde)}
-                </p>
-              </div>
-              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform ${
-                solde >= 0 ? 'from-emerald-400 to-emerald-600 shadow-emerald-500/20' : 'from-red-400 to-red-600 shadow-red-500/20'
-              }`}>
-                <WalletIcon size={26} className="text-white" />
-              </div>
-            </div>
-            <p className={`text-xs font-bold mt-2 flex items-center gap-1 ${
-              solde >= 0 ? 'text-emerald-600' : 'text-red-600'
-            }`}>
-              <SoldeIcon size={14} />
-              {soldeStatus.label}
-            </p>
-          </div>
+          <p className="text-xs text-[#3C6C5F]/50 mt-2">{revenus.length} transaction(s)</p>
         </div>
 
-        {/* ============================================ */}
-        {/* MAIN CONTENT */}
-        {/* ============================================ */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Form */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-[#1a2e28] rounded-3xl shadow-xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 overflow-hidden hover:shadow-2xl transition-all duration-300">
-              <div className="p-6 border-b border-[#FFC490]/20 dark:border-[#FFC490]/10 bg-gradient-to-r from-[#FFF3DA]/20 to-white dark:from-[#2a3f38]/20 dark:to-[#1a2e28]">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-[#DDF3E8] dark:bg-[#2a3f38] rounded-xl">
-                    <PlusIcon size={18} className="text-[#3C6C5F]" />
-                  </div>
-                  <h2 className="font-bold text-[#29453E] dark:text-white">
-                    Ajouter {tab === "depenses" ? "une dépense" : "un revenu"}
-                  </h2>
+        <div className="bg-white rounded-2xl p-5 border border-[#E8E3DC]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-[#3C6C5F]/60 uppercase tracking-wider">Dépenses</p>
+              <p className="text-2xl font-bold text-red-600 mt-1">-{formatMontant(totalDepenses)}</p>
+            </div>
+            <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center">
+              <TrendingDown size={20} className="text-red-600" />
+            </div>
+          </div>
+          <p className="text-xs text-[#3C6C5F]/50 mt-2">{depenses.length} transaction(s)</p>
+        </div>
+
+        <div className={`bg-white rounded-2xl p-5 border-2 ${solde >= 0 ? 'border-emerald-200' : 'border-red-200'}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-[#3C6C5F]/60 uppercase tracking-wider">Solde</p>
+              <p className={`text-2xl font-bold mt-1 ${solde >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {solde >= 0 ? '+' : ''}{formatMontant(solde)}
+              </p>
+            </div>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${solde >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
+              <Wallet size={20} className={solde >= 0 ? 'text-emerald-600' : 'text-red-600'} />
+            </div>
+          </div>
+          <p className={`text-xs font-medium mt-2 ${solde >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            {solde > 0 ? '✅ Bénéficiaire' : solde < 0 ? '⚠️ Déficitaire' : '➖ Équilibre'}
+          </p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="grid grid-cols-3 gap-6">
+        {/* Form - Left */}
+        <div className="col-span-1">
+          <div className="bg-white rounded-2xl border border-[#E8E3DC] overflow-hidden sticky top-6">
+            <div className="p-4 border-b border-[#E8E3DC] bg-[#FAFAFA]">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-[#DDF3E8] rounded-lg">
+                  <Plus size={16} className="text-[#3C6C5F]" />
                 </div>
-                <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mt-1 ml-1">
-                  Remplissez le formulaire pour enregistrer une transaction
-                </p>
-              </div>
-              <div className="p-6">
-                {tab === "depenses" ? (
-                  <AddDepenseForm fermes={fermes} userId={user.id} />
-                ) : (
-                  <AddRevenuForm fermes={fermes} userId={user.id} />
-                )}
+                <h2 className="font-semibold text-[#29453E]">
+                  Ajouter {tab === "depenses" ? "une dépense" : "un revenu"}
+                </h2>
               </div>
             </div>
-          </div>
-
-          {/* Table */}
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-[#1a2e28] rounded-3xl shadow-xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 overflow-hidden hover:shadow-2xl transition-all duration-300">
-              
-              {/* Tab Switcher */}
-              <div className="flex border-b border-[#FFC490]/20 dark:border-[#FFC490]/10 bg-gradient-to-r from-[#FFF3DA]/20 to-white dark:from-[#2a3f38]/20 dark:to-[#1a2e28]">
-                <button
-                  onClick={() => setTab("depenses")}
-                  className={`flex-1 py-4 text-sm font-bold transition-all flex items-center justify-center gap-2 ${
-                    tab === "depenses"
-                      ? "text-red-600 dark:text-red-400 border-b-2 border-red-500 dark:border-red-400 bg-white dark:bg-[#1a2e28]"
-                      : "text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 hover:text-[#29453E] dark:hover:text-white hover:bg-[#FFF3DA]/30 dark:hover:bg-[#2a3f38]/30"
-                  }`}
-                >
-                  <TrendingDownIcon size={18} />
-                  Dépenses
-                  <span className="px-2.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold rounded-full">
-                    {depenses.length}
-                  </span>
-                </button>
-                <button
-                  onClick={() => setTab("revenus")}
-                  className={`flex-1 py-4 text-sm font-bold transition-all flex items-center justify-center gap-2 ${
-                    tab === "revenus"
-                      ? "text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-500 dark:border-emerald-400 bg-white dark:bg-[#1a2e28]"
-                      : "text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 hover:text-[#29453E] dark:hover:text-white hover:bg-[#FFF3DA]/30 dark:hover:bg-[#2a3f38]/30"
-                  }`}
-                >
-                  <TrendingUpIcon size={18} />
-                  Revenus
-                  <span className="px-2.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-full">
-                    {revenus.length}
-                  </span>
-                </button>
-              </div>
-
-              {/* Content */}
+            <div className="p-4">
               {tab === "depenses" ? (
-                <>
-                  {depenses.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                      <div className="w-20 h-20 rounded-full bg-[#FFF3DA] dark:bg-[#2a3f38] flex items-center justify-center mb-4 border-2 border-[#FFC490]/20">
-                        <ReceiptIcon size={36} className="text-[#3C6C5F]/40" />
-                      </div>
-                      <h3 className="text-xl font-bold text-[#29453E] dark:text-white">Aucune dépense</h3>
-                      <p className="text-sm text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mt-2 max-w-sm">
-                        Ajoutez votre première dépense via le formulaire à gauche.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-[#FFF3DA]/30 dark:bg-[#2a3f38]/30 text-xs font-bold text-[#29453E] dark:text-white uppercase tracking-wider border-b border-[#FFC490]/10 dark:border-[#FFC490]/5">
-                            <th className="px-6 py-4 text-left">Date</th>
-                            <th className="px-6 py-4 text-left">Type</th>
-                            <th className="px-6 py-4 text-left">Ferme</th>
-                            <th className="px-6 py-4 text-right">Montant</th>
-                            <th className="px-6 py-4 text-right">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#FFC490]/10 dark:divide-[#FFC490]/5">
-                          {depenses.map((d) => (
-                            <tr key={d.id} className="hover:bg-[#FFF3DA]/10 dark:hover:bg-[#2a3f38]/20 transition-colors duration-200 group">
-                              <td className="px-6 py-4 text-sm text-[#29453E] dark:text-white whitespace-nowrap">
-                                {formatDate(d.date)}
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-2">
-                                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border-2 ${LABEL_TYPE[d.type]?.color || LABEL_TYPE.AUTRE.color}`}>
-                                    {LABEL_TYPE[d.type]?.icon}
-                                    {LABEL_TYPE[d.type]?.label || d.type}
-                                  </span>
-                                </div>
-                                {d.description && (
-                                  <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mt-1 truncate max-w-[200px]">
-                                    {d.description}
-                                  </p>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-sm text-[#29453E] dark:text-white whitespace-nowrap">
-                                {d.ferme.nom}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <span className="font-extrabold text-red-600 dark:text-red-400">
-                                  -{formatMontant(d.montant)} DZD
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <button
-                                  onClick={() => setShowDeleteModal({ id: d.id, type: 'depense' })}
-                                  disabled={deletingId === d.id}
-                                  className="p-2.5 rounded-xl text-red-500/60 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300 group-hover:scale-110 disabled:opacity-50"
-                                >
-                                  {deletingId === d.id ? (
-                                    <Loader2 size={18} className="animate-spin" />
-                                  ) : (
-                                    <Trash2Icon size={18} />
-                                  )}
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </>
+                <AddDepenseForm fermes={fermes} userId={user.id} />
               ) : (
-                <>
-                  {revenus.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                      <div className="w-20 h-20 rounded-full bg-[#FFF3DA] dark:bg-[#2a3f38] flex items-center justify-center mb-4 border-2 border-[#FFC490]/20">
-                        <CreditCardIcon size={36} className="text-[#3C6C5F]/40" />
-                      </div>
-                      <h3 className="text-xl font-bold text-[#29453E] dark:text-white">Aucun revenu</h3>
-                      <p className="text-sm text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mt-2 max-sm">
-                        Ajoutez votre premier revenu via le formulaire à gauche.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-[#FFF3DA]/30 dark:bg-[#2a3f38]/30 text-xs font-bold text-[#29453E] dark:text-white uppercase tracking-wider border-b border-[#FFC490]/10 dark:border-[#FFC490]/5">
-                            <th className="px-6 py-4 text-left">Date</th>
-                            <th className="px-6 py-4 text-left">Source</th>
-                            <th className="px-6 py-4 text-left">Ferme</th>
-                            <th className="px-6 py-4 text-right">Montant</th>
-                            <th className="px-6 py-4 text-right">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#FFC490]/10 dark:divide-[#FFC490]/5">
-                          {revenus.map((r) => (
-                            <tr key={r.id} className="hover:bg-[#FFF3DA]/10 dark:hover:bg-[#2a3f38]/20 transition-colors duration-200 group">
-                              <td className="px-6 py-4 text-sm text-[#29453E] dark:text-white whitespace-nowrap">
-                                {formatDate(r.date)}
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-2">
-                                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border-2 ${LABEL_SOURCE[r.source]?.color || LABEL_SOURCE.AUTRE.color}`}>
-                                    {LABEL_SOURCE[r.source]?.icon}
-                                    {LABEL_SOURCE[r.source]?.label || r.source}
-                                  </span>
-                                </div>
-                                {r.description && (
-                                  <p className="text-xs text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60 mt-1 truncate max-w-[200px]">
-                                    {r.description}
-                                  </p>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-sm text-[#29453E] dark:text-white whitespace-nowrap">
-                                {r.ferme.nom}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
-                                  +{formatMontant(r.montant)} DZD
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <button
-                                  onClick={() => setShowDeleteModal({ id: r.id, type: 'revenu' })}
-                                  disabled={deletingId === r.id}
-                                  className="p-2.5 rounded-xl text-red-500/60 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300 group-hover:scale-110 disabled:opacity-50"
-                                >
-                                  {deletingId === r.id ? (
-                                    <Loader2 size={18} className="animate-spin" />
-                                  ) : (
-                                    <Trash2Icon size={18} />
-                                  )}
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </>
+                <AddRevenuForm fermes={fermes} userId={user.id} />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Table - Right */}
+        <div className="col-span-2">
+          <div className="bg-white rounded-2xl border border-[#E8E3DC] overflow-hidden">
+            {/* Tabs */}
+            <div className="flex border-b border-[#E8E3DC] bg-[#FAFAFA]">
+              <button
+                onClick={() => setTab("depenses")}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                  tab === "depenses"
+                    ? "text-red-600 border-b-2 border-red-500 bg-white"
+                    : "text-[#3C6C5F]/60 hover:text-[#29453E] hover:bg-[#FFF3DA]/30"
+                }`}
+              >
+                <TrendingDown size={16} />
+                Dépenses
+                <span className="px-2 py-0.5 bg-red-50 text-red-600 text-xs font-bold rounded-full">
+                  {depenses.length}
+                </span>
+              </button>
+              <button
+                onClick={() => setTab("revenus")}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                  tab === "revenus"
+                    ? "text-emerald-600 border-b-2 border-emerald-500 bg-white"
+                    : "text-[#3C6C5F]/60 hover:text-[#29453E] hover:bg-[#FFF3DA]/30"
+                }`}
+              >
+                <TrendingUp size={16} />
+                Revenus
+                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-full">
+                  {revenus.length}
+                </span>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="max-h-[500px] overflow-y-auto">
+              {tab === "depenses" ? (
+                depenses.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <Receipt size={40} className="text-[#3C6C5F]/20" />
+                    <p className="text-[#3C6C5F]/40 font-medium mt-3">Aucune dépense</p>
+                    <p className="text-xs text-[#3C6C5F]/30">Ajoutez votre première dépense</p>
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead className="bg-[#F8F6F3] text-[#29453E] text-xs font-semibold uppercase tracking-wider sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-left">Date</th>
+                        <th className="px-4 py-3 text-left">Type</th>
+                        <th className="px-4 py-3 text-left">Ferme</th>
+                        <th className="px-4 py-3 text-right">Montant</th>
+                        <th className="px-4 py-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E8E3DC]/50">
+                      {depenses.map((d) => (
+                        <tr key={d.id} className="hover:bg-[#F8F6F3] transition-colors group">
+                          <td className="px-4 py-3 text-sm text-[#29453E] whitespace-nowrap">
+                            {formatDate(d.date)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${LABEL_TYPE[d.type]?.color || LABEL_TYPE.AUTRE.color}`}>
+                              {LABEL_TYPE[d.type]?.icon}
+                              {LABEL_TYPE[d.type]?.label || d.type}
+                            </span>
+                            {d.description && (
+                              <p className="text-xs text-[#3C6C5F]/50 mt-0.5 truncate max-w-[140px]">
+                                {d.description}
+                              </p>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[#29453E]">
+                            {d.ferme.nom}
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-red-600">
+                            -{formatMontant(d.montant)} DT
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              onClick={() => setShowDeleteModal({ id: d.id, type: 'depense' })}
+                              disabled={deletingId === d.id}
+                              className="p-2 rounded-lg text-[#3C6C5F]/30 hover:text-red-600 hover:bg-red-50 transition-all disabled:opacity-50"
+                            >
+                              {deletingId === d.id ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={16} />
+                              )}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )
+              ) : (
+                revenus.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <CreditCard size={40} className="text-[#3C6C5F]/20" />
+                    <p className="text-[#3C6C5F]/40 font-medium mt-3">Aucun revenu</p>
+                    <p className="text-xs text-[#3C6C5F]/30">Ajoutez votre premier revenu</p>
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead className="bg-[#F8F6F3] text-[#29453E] text-xs font-semibold uppercase tracking-wider sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-left">Date</th>
+                        <th className="px-4 py-3 text-left">Source</th>
+                        <th className="px-4 py-3 text-left">Ferme</th>
+                        <th className="px-4 py-3 text-right">Montant</th>
+                        <th className="px-4 py-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E8E3DC]/50">
+                      {revenus.map((r) => (
+                        <tr key={r.id} className="hover:bg-[#F8F6F3] transition-colors group">
+                          <td className="px-4 py-3 text-sm text-[#29453E] whitespace-nowrap">
+                            {formatDate(r.date)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${LABEL_SOURCE[r.source]?.color || LABEL_SOURCE.AUTRE.color}`}>
+                              {LABEL_SOURCE[r.source]?.icon}
+                              {LABEL_SOURCE[r.source]?.label || r.source}
+                            </span>
+                            {r.description && (
+                              <p className="text-xs text-[#3C6C5F]/50 mt-0.5 truncate max-w-[140px]">
+                                {r.description}
+                              </p>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[#29453E]">
+                            {r.ferme.nom}
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-emerald-600">
+                            +{formatMontant(r.montant)} DT
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              onClick={() => setShowDeleteModal({ id: r.id, type: 'revenu' })}
+                              disabled={deletingId === r.id}
+                              className="p-2 rounded-lg text-[#3C6C5F]/30 hover:text-red-600 hover:bg-red-50 transition-all disabled:opacity-50"
+                            >
+                              {deletingId === r.id ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={16} />
+                              )}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ============================================ */}
-      {/* DELETE CONFIRMATION MODAL - MODERN */}
-      {/* ============================================ */}
+      {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#1a2e28] rounded-3xl max-w-md w-full p-8 shadow-2xl border border-[#FFC490]/20 dark:border-[#FFC490]/10 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-2xl border-2 border-red-200 dark:border-red-800">
-                <AlertCircle size={28} className="text-red-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-red-50 rounded-xl">
+                <AlertCircle size={24} className="text-red-500" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-[#29453E] dark:text-white">
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-[#29453E]">
                   Supprimer {showDeleteModal.type === 'depense' ? 'la dépense' : 'le revenu'}
                 </h3>
-                <p className="text-sm text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60">Cette action est irréversible</p>
+                <p className="text-sm text-[#3C6C5F]/60 mt-1">
+                  Cette action est irréversible. Êtes-vous sûr ?
+                </p>
               </div>
-            </div>
-            
-            <p className="text-[#29453E] dark:text-white mb-6">
-              Êtes-vous sûr de vouloir supprimer cette transaction ?
-            </p>
-            
-            <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteModal(null)}
-                className="flex-1 py-3.5 rounded-2xl border-2 border-[#FFC490]/20 dark:border-[#FFC490]/10 text-[#29453E] dark:text-white font-bold hover:bg-[#FFF3DA] dark:hover:bg-[#2a3f38] transition-all"
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={18} className="text-[#3C6C5F]/40" />
+              </button>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowDeleteModal(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-[#E8E3DC] text-[#29453E] font-medium hover:bg-[#F8F6F3] transition-all"
               >
                 Annuler
               </button>
               <button
                 onClick={handleDelete}
-                className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-bold hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-lg shadow-red-500/20 hover:shadow-xl flex items-center justify-center gap-2"
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {deletingId ? (
                   <Loader2 size={18} className="animate-spin" />
                 ) : (
                   <>
-                    <Trash2Icon size={18} />
+                    <Trash2 size={16} />
                     Supprimer
                   </>
                 )}
@@ -550,24 +451,6 @@ export default function FinancesView({
           </div>
         </div>
       )}
-
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes zoomIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        .animate-in {
-          animation: fadeIn 0.3s ease-out;
-        }
-        .zoom-in-95 {
-          animation: zoomIn 0.2s ease-out;
-        }
-      `}</style>
     </div>
   );
 }
