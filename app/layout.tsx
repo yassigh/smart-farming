@@ -1,8 +1,10 @@
-// app/layout.tsx - VÉRIFIÉ
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { TranslationProvider } from "@/contexts/TranslationContext";
+import ChatBot from '../components/ChatBot';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,8 +36,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-primary text-primary transition-colors duration-300">
-        <ThemeProvider>  {/* ✅ Un seul ThemeProvider ici */}
-          {children}
+        <ThemeProvider>
+          <TranslationProvider>
+            {children}
+            <ChatBot />
+          </TranslationProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,4 +1,4 @@
-// components/NotificationIcon.tsx
+// components/NotificationIcon.tsx - Version avec TTS
 "use client";
 
 import {
@@ -25,6 +25,8 @@ import {
   Clock as ClockIcon,
   Circle,
   CheckCircle2,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -50,6 +52,38 @@ const COLORS = {
   PRINTEMPS: '#9DAE7A',
 };
 
+// ─── Google TTS Configuration ──────────────────────────────────────────────
+// Utilise l'API Web Speech (gratuite, intégrée aux navigateurs)
+// Pour une voix plus naturelle, on utilise l'API Speech Synthesis
+
+function speakText(text: string, lang: string = 'fr-FR') {
+  if (!window.speechSynthesis) {
+    console.warn('Speech Synthesis non supportée');
+    return;
+  }
+
+  // Arrêter toute lecture en cours
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang;
+  utterance.rate = 0.9;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+
+  // Essayer de trouver une voix française naturelle
+  const voices = window.speechSynthesis.getVoices();
+  const frenchVoice = voices.find(
+    (voice) => voice.lang.startsWith('fr') && voice.name.includes('Google')
+  ) || voices.find((voice) => voice.lang.startsWith('fr'));
+  
+  if (frenchVoice) {
+    utterance.voice = frenchVoice;
+  }
+
+  window.speechSynthesis.speak(utterance);
+}
+
 // ─── Mapping titre → icône + couleur ──────────────────────────────────────
 function getNotifStyle(titre: string): {
   Icon: React.ElementType;
@@ -57,8 +91,10 @@ function getNotifStyle(titre: string): {
   iconColor: string;
   accent: string;
   badgeColor: string;
+  isUrgent: boolean;
 } {
   const t = titre.toLowerCase();
+  const isUrgent = t.includes("urgent") || t.includes("alerte") || t.includes("critique");
   
   if (t.includes("rappel de vaccination") || t.includes("vaccination - ⚠️") || t.includes("vaccination - 🔔"))
     return { 
@@ -66,7 +102,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-blue-100 dark:bg-blue-900/30", 
       iconColor: "text-blue-600 dark:text-blue-400", 
       accent: "border-l-blue-500",
-      badgeColor: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+      badgeColor: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
+      isUrgent: isUrgent || t.includes("⚠️")
     };
   if (t.includes("rappel de traitement") || t.includes("traitement - ⚠️") || t.includes("traitement - 🔔"))
     return { 
@@ -74,7 +111,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-purple-100 dark:bg-purple-900/30", 
       iconColor: "text-purple-600 dark:text-purple-400", 
       accent: "border-l-purple-500",
-      badgeColor: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+      badgeColor: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
+      isUrgent: isUrgent || t.includes("⚠️")
     };
   if (t.includes("urgent") || t.includes("alerte"))
     return { 
@@ -82,7 +120,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-red-100 dark:bg-red-900/30", 
       iconColor: "text-red-600 dark:text-red-400", 
       accent: "border-l-red-500",
-      badgeColor: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+      badgeColor: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+      isUrgent: true
     };
   if (t.includes("rappel"))
     return { 
@@ -90,7 +129,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-amber-100 dark:bg-amber-900/30", 
       iconColor: "text-amber-600 dark:text-amber-400", 
       accent: "border-l-amber-500",
-      badgeColor: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+      badgeColor: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300",
+      isUrgent: false
     };
   if (t.includes("animal") || t.includes("bête") || t.includes("paw"))
     return { 
@@ -98,7 +138,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-orange-100 dark:bg-orange-900/30", 
       iconColor: "text-orange-600 dark:text-orange-400", 
       accent: "border-l-orange-500",
-      badgeColor: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300"
+      badgeColor: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300",
+      isUrgent: isUrgent
     };
   if (t.includes("culture") || t.includes("récolte") || t.includes("plantation"))
     return { 
@@ -106,7 +147,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-emerald-100 dark:bg-emerald-900/30", 
       iconColor: "text-emerald-600 dark:text-emerald-400", 
       accent: "border-l-emerald-500",
-      badgeColor: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
+      badgeColor: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300",
+      isUrgent: isUrgent
     };
   if (t.includes("vaccination") || t.includes("vaccin"))
     return { 
@@ -114,7 +156,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-blue-100 dark:bg-blue-900/30", 
       iconColor: "text-blue-600 dark:text-blue-400", 
       accent: "border-l-blue-500",
-      badgeColor: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+      badgeColor: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
+      isUrgent: isUrgent
     };
   if (t.includes("traitement") || t.includes("médicament"))
     return { 
@@ -122,7 +165,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-purple-100 dark:bg-purple-900/30", 
       iconColor: "text-purple-600 dark:text-purple-400", 
       accent: "border-l-purple-500",
-      badgeColor: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+      badgeColor: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
+      isUrgent: isUrgent
     };
   if (t.includes("ferme") || t.includes("farm"))
     return { 
@@ -130,7 +174,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-amber-100 dark:bg-amber-900/30", 
       iconColor: "text-amber-600 dark:text-amber-400", 
       accent: "border-l-amber-500",
-      badgeColor: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+      badgeColor: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300",
+      isUrgent: false
     };
   if (t.includes("terrain"))
     return { 
@@ -138,7 +183,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-teal-100 dark:bg-teal-900/30", 
       iconColor: "text-teal-600 dark:text-teal-400", 
       accent: "border-l-teal-500",
-      badgeColor: "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
+      badgeColor: "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300",
+      isUrgent: false
     };
   if (t.includes("finance") || t.includes("dépense") || t.includes("revenu"))
     return { 
@@ -146,7 +192,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-green-100 dark:bg-green-900/30", 
       iconColor: "text-green-600 dark:text-green-400", 
       accent: "border-l-green-500",
-      badgeColor: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+      badgeColor: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
+      isUrgent: isUrgent
     };
   if (t.includes("prédiction") || t.includes("analyse"))
     return { 
@@ -154,7 +201,8 @@ function getNotifStyle(titre: string): {
       bg: "bg-indigo-100 dark:bg-indigo-900/30", 
       iconColor: "text-indigo-600 dark:text-indigo-400", 
       accent: "border-l-indigo-500",
-      badgeColor: "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+      badgeColor: "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300",
+      isUrgent: false
     };
   if (t.includes("utilisateur") || t.includes("par "))
     return { 
@@ -162,14 +210,16 @@ function getNotifStyle(titre: string): {
       bg: "bg-sky-100 dark:bg-sky-900/30", 
       iconColor: "text-sky-600 dark:text-sky-400", 
       accent: "border-l-sky-500",
-      badgeColor: "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300"
+      badgeColor: "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300",
+      isUrgent: false
     };
   return { 
     Icon: Info, 
     bg: "bg-gray-100 dark:bg-gray-800/30", 
     iconColor: "text-gray-600 dark:text-gray-400", 
     accent: "border-l-gray-500",
-    badgeColor: "bg-gray-100 dark:bg-gray-800/30 text-gray-700 dark:text-gray-300"
+    badgeColor: "bg-gray-100 dark:bg-gray-800/30 text-gray-700 dark:text-gray-300",
+    isUrgent: false
   };
 }
 
@@ -194,6 +244,23 @@ function extractActeur(message: string): { acteur: string | null; body: string }
   return { acteur: null, body: message };
 }
 
+// Nettoyer le texte pour la lecture vocale
+function cleanTextForSpeech(text: string): string {
+  return text
+    .replace(/[🔔⚠️❗🔴🟡🟢👤]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Générer un message vocal à partir de la notification
+function generateSpeechText(notification: Notification): string {
+  const { body } = extractActeur(notification.message);
+  const cleanBody = cleanTextForSpeech(body);
+  const titre = cleanTextForSpeech(notification.titre);
+  
+  return `${titre}. ${cleanBody}`;
+}
+
 export default function NotificationIcon({ userId }: { userId: number }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -202,13 +269,74 @@ export default function NotificationIcon({ userId }: { userId: number }) {
   const [refreshing, setRefreshing] = useState(false);
   const [lastFetch, setLastFetch] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
+  const [isMuted, setIsMuted] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastReadNotifIdRef = useRef<number | null>(null);
+  const audioQueueRef = useRef<Notification[]>([]);
+  const isAudioPlayingRef = useRef(false);
 
+  // ─── Lecture vocale des notifications ──────────────────────────────────────
+  const playNotificationAudio = useCallback((notification: Notification) => {
+    if (isMuted) return;
+    
+    const speechText = generateSpeechText(notification);
+    speakText(speechText);
+    setIsSpeaking(true);
+    
+    setTimeout(() => setIsSpeaking(false), 5000);
+  }, [isMuted]);
+
+  // ─── Lecture de la file d'attente audio ───────────────────────────────────
+  const processAudioQueue = useCallback(() => {
+    if (isAudioPlayingRef.current || audioQueueRef.current.length === 0 || isMuted) return;
+    
+    const notification = audioQueueRef.current.shift();
+    if (notification) {
+      isAudioPlayingRef.current = true;
+      playNotificationAudio(notification);
+      setTimeout(() => {
+        isAudioPlayingRef.current = false;
+        processAudioQueue();
+      }, 3000);
+    }
+  }, [isMuted, playNotificationAudio]);
+
+  // ─── Vérifier les nouvelles notifications pour les lire ──────────────────
+  const checkAndSpeakNewNotifications = useCallback((newNotifications: Notification[]) => {
+    const unreadNotifs = newNotifications.filter(n => n.statut === "NON_LUE");
+    
+    if (unreadNotifs.length === 0) return;
+    
+    // Filtrer les notifications déjà lues
+    const newUnread = unreadNotifs.filter(n => n.id !== lastReadNotifIdRef.current);
+    
+    if (newUnread.length > 0) {
+      // Trier par date (les plus récentes d'abord)
+      const sorted = newUnread.sort((a, b) => 
+        new Date(b.dateEnvoi).getTime() - new Date(a.dateEnvoi).getTime()
+      );
+      
+      // Ajouter à la file d'attente
+      audioQueueRef.current = [...audioQueueRef.current, ...sorted];
+      
+      // Démarrer le traitement de la file
+      if (!isAudioPlayingRef.current) {
+        processAudioQueue();
+      }
+      
+      // Mettre à jour le dernier ID lu
+      lastReadNotifIdRef.current = sorted[0].id;
+    }
+  }, [processAudioQueue]);
+
+  // ─── Charger les notifications ────────────────────────────────────────────
   const loadNotifications = useCallback(
     async (showRefreshing = false) => {
       if (showRefreshing) setRefreshing(true);
       else if (!lastFetch) setLoading(true);
+      
       try {
         const result = await getUserNotifications(userId);
         if (result.success && result.notifications) {
@@ -216,12 +344,15 @@ export default function NotificationIcon({ userId }: { userId: number }) {
             id: n.id,
             titre: n.titre,
             message: n.message,
-            dateEnvoi:
-              n.dateEnvoi instanceof Date
-                ? n.dateEnvoi.toISOString()
-                : String(n.dateEnvoi),
+            dateEnvoi: n.dateEnvoi instanceof Date ? n.dateEnvoi.toISOString() : String(n.dateEnvoi),
             statut: n.statut === "LUE" ? "LUE" : "NON_LUE",
           }));
+          
+          // Vérifier les nouvelles notifications pour la lecture vocale
+          if (!showRefreshing && !isOpen) {
+            checkAndSpeakNewNotifications(mapped);
+          }
+          
           setNotifications(mapped);
           setUnreadCount(result.unreadCount ?? 0);
           setLastFetch(new Date());
@@ -231,9 +362,10 @@ export default function NotificationIcon({ userId }: { userId: number }) {
         setRefreshing(false);
       }
     },
-    [userId, lastFetch]
+    [userId, lastFetch, isOpen, checkAndSpeakNewNotifications]
   );
 
+  // ─── Vérification des rappels ──────────────────────────────────────────────
   const checkReminders = useCallback(async () => {
     try {
       const response = await fetch('/api/reminders', {
@@ -247,6 +379,7 @@ export default function NotificationIcon({ userId }: { userId: number }) {
     }
   }, [loadNotifications]);
 
+  // ─── Polling ──────────────────────────────────────────────────────────────
   const startPolling = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
@@ -255,13 +388,20 @@ export default function NotificationIcon({ userId }: { userId: number }) {
       if (now.getHours() === 8 && now.getMinutes() === 0) {
         checkReminders();
       }
-    }, 60000);
+    }, 15000); // 15 secondes
   }, [loadNotifications, checkReminders]);
 
+  // ─── Effets ───────────────────────────────────────────────────────────────
   useEffect(() => {
     loadNotifications();
     checkReminders();
     startPolling();
+    
+    // Charger les voix disponibles
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
     
     const handleVisibility = () => {
       if (!document.hidden) { 
@@ -279,14 +419,17 @@ export default function NotificationIcon({ userId }: { userId: number }) {
     
     document.addEventListener("visibilitychange", handleVisibility);
     document.addEventListener("mousedown", handleOutside);
+    
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      window.speechSynthesis.cancel();
       document.removeEventListener("visibilitychange", handleVisibility);
       document.removeEventListener("mousedown", handleOutside);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  // ─── Marquer comme lu ──────────────────────────────────────────────────────
   const handleMarkAsRead = async (id: number) => {
     const result = await markNotificationAsRead(id);
     if (result.success) {
@@ -303,39 +446,71 @@ export default function NotificationIcon({ userId }: { userId: number }) {
     }
   };
 
-  const displayed =
-    activeTab === "unread"
-      ? notifications.filter((n) => n.statut === "NON_LUE")
-      : notifications;
+  // ─── Basculer le son ──────────────────────────────────────────────────────
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (!isMuted) {
+      window.speechSynthesis.cancel();
+      audioQueueRef.current = [];
+      isAudioPlayingRef.current = false;
+      setIsSpeaking(false);
+    }
+  };
+
+  const displayed = activeTab === "unread"
+    ? notifications.filter((n) => n.statut === "NON_LUE")
+    : notifications;
+
+  // Détecter les notifications urgentes
+  const urgentNotifications = notifications.filter(n => {
+    const style = getNotifStyle(n.titre);
+    return style.isUrgent && n.statut === "NON_LUE";
+  });
 
   return (
     <div className="fixed top-4 right-6 z-50" ref={dropdownRef}>
-      <button
-        onClick={() => { const next = !isOpen; setIsOpen(next); if (next) loadNotifications(true); }}
-        className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-white dark:bg-[#1a2e28] backdrop-blur-xl border border-[#FFF3DA]/50 dark:border-[#3C6C5F]/30 shadow-lg hover:shadow-xl hover:border-[#FFC490] dark:hover:border-[#FFC490]/50 transition-all duration-200 hover:scale-105 active:scale-95 group"
-        aria-label="Notifications"
-      >
-        {unreadCount > 0
-          ? <Bell className="w-5 h-5 text-[#3C6C5F] dark:text-[#9DAE7A] transition-transform group-hover:rotate-12" />
-          : <BellOff className="w-5 h-5 text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40 transition-transform group-hover:scale-110" />
-        }
+      <div className="relative flex items-center gap-2">
+        {/* Bouton Muet */}
+        <button
+          onClick={toggleMute}
+          className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white dark:bg-[#1a2e28] backdrop-blur-xl border border-[#FFF3DA]/50 dark:border-[#3C6C5F]/30 shadow-lg hover:shadow-xl hover:border-[#FFC490] dark:hover:border-[#FFC490]/50 transition-all duration-200 hover:scale-105 active:scale-95 group"
+          title={isMuted ? "Activer le son" : "Couper le son"}
+        >
+          {isMuted ? (
+            <VolumeX className="w-4.5 h-4.5 text-red-500 dark:text-red-400" />
+          ) : (
+            <Volume2 className={`w-4.5 h-4.5 text-[#3C6C5F] dark:text-[#9DAE7A] ${isSpeaking ? 'animate-pulse' : ''}`} />
+          )}
+        </button>
 
-        {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 bg-gradient-to-br from-[#FFC490] to-[#D4A574] text-[#29453E] dark:text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1.5 shadow-md shadow-[#FFC490]/40 animate-bounce">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
-        )}
+        {/* Bouton Notifications */}
+        <button
+          onClick={() => { const next = !isOpen; setIsOpen(next); if (next) loadNotifications(true); }}
+          className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-white dark:bg-[#1a2e28] backdrop-blur-xl border border-[#FFF3DA]/50 dark:border-[#3C6C5F]/30 shadow-lg hover:shadow-xl hover:border-[#FFC490] dark:hover:border-[#FFC490]/50 transition-all duration-200 hover:scale-105 active:scale-95 group"
+          aria-label="Notifications"
+        >
+          {unreadCount > 0
+            ? <Bell className="w-5 h-5 text-[#3C6C5F] dark:text-[#9DAE7A] transition-transform group-hover:rotate-12" />
+            : <BellOff className="w-5 h-5 text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40 transition-transform group-hover:scale-110" />
+          }
 
-        {refreshing && (
-          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-white dark:bg-[#1a2e28] border-2 border-[#3C6C5F] dark:border-[#9DAE7A] rounded-full flex items-center justify-center">
-            <span className="w-1.5 h-1.5 bg-[#3C6C5F] dark:bg-[#9DAE7A] rounded-full animate-ping" />
-          </span>
-        )}
-      </button>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 bg-gradient-to-br from-[#FFC490] to-[#D4A574] text-[#29453E] dark:text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1.5 shadow-md shadow-[#FFC490]/40 animate-bounce">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+
+          {isSpeaking && (
+            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-white dark:bg-[#1a2e28] border-2 border-[#3C6C5F] dark:border-[#9DAE7A] rounded-full flex items-center justify-center">
+              <span className="w-1.5 h-1.5 bg-[#3C6C5F] dark:bg-[#9DAE7A] rounded-full animate-ping" />
+            </span>
+          )}
+        </button>
+      </div>
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-[400px] rounded-2xl overflow-hidden shadow-2xl border border-[#FFF3DA]/60 dark:border-[#3C6C5F]/30 backdrop-blur-xl bg-white/95 dark:bg-[#1a2e28]/95"
+          className="absolute right-0 mt-2 w-[420px] rounded-2xl overflow-hidden shadow-2xl border border-[#FFF3DA]/60 dark:border-[#3C6C5F]/30 backdrop-blur-xl bg-white/95 dark:bg-[#1a2e28]/95"
           style={{ animation: "slideDown 0.18s ease-out" }}
         >
           {/* Header */}
@@ -354,6 +529,15 @@ export default function NotificationIcon({ userId }: { userId: number }) {
               </div>
 
               <div className="flex items-center gap-1">
+                {/* Indicateur TTS */}
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
+                  isMuted ? 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500' :
+                  isSpeaking ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 animate-pulse' :
+                  'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                }`}>
+                  {isMuted ? '🔇' : isSpeaking ? '🔊' : '🔈'}
+                </span>
+                
                 <button
                   onClick={() => loadNotifications(true)}
                   disabled={refreshing}
@@ -374,6 +558,17 @@ export default function NotificationIcon({ userId }: { userId: number }) {
                 )}
               </div>
             </div>
+
+            {/* Alertes urgentes */}
+            {urgentNotifications.length > 0 && (
+              <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                <p className="text-[10px] text-red-700 dark:text-red-300 font-medium">
+                  {urgentNotifications.length} notification{urgentNotifications.length > 1 ? 's' : ''} urgente{urgentNotifications.length > 1 ? 's' : ''} 
+                  {!isMuted && ' — lecture vocale en cours'}
+                </p>
+              </div>
+            )}
 
             {/* Tabs */}
             <div className="flex gap-1 p-0.5 bg-[#FFF3DA]/40 dark:bg-[#29453E]/20 rounded-xl mt-2">
@@ -418,7 +613,7 @@ export default function NotificationIcon({ userId }: { userId: number }) {
             ) : (
               <div className="divide-y divide-[#FFF3DA]/40 dark:divide-[#3C6C5F]/20">
                 {displayed.map((notif) => {
-                  const { Icon, bg, iconColor, accent, badgeColor } = getNotifStyle(notif.titre);
+                  const { Icon, bg, iconColor, accent, badgeColor, isUrgent } = getNotifStyle(notif.titre);
                   const { acteur, body } = extractActeur(notif.message);
                   const isUnread = notif.statut === "NON_LUE";
                   const isRappel = notif.titre.toLowerCase().includes('rappel');
@@ -440,6 +635,9 @@ export default function NotificationIcon({ userId }: { userId: number }) {
                         <div className="flex items-start justify-between gap-2">
                           <p className={`text-xs font-bold leading-tight ${isUnread ? "text-[#29453E] dark:text-white" : "text-[#3C6C5F]/60 dark:text-[#9DAE7A]/60"}`}>
                             {notif.titre}
+                            {isUrgent && isUnread && (
+                              <span className="ml-1.5 text-red-500 dark:text-red-400">⚠️</span>
+                            )}
                           </p>
                           <span className="text-[10px] text-[#3C6C5F]/40 dark:text-[#9DAE7A]/40 flex-shrink-0 mt-0.5">
                             {formatDate(notif.dateEnvoi)}
@@ -474,6 +672,13 @@ export default function NotificationIcon({ userId }: { userId: number }) {
                               Non lu
                             </span>
                           )}
+
+                          {isUrgent && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-[9px] font-bold rounded-full border border-red-200 dark:border-red-800/30">
+                              <AlertTriangle size={10} />
+                              Urgent
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -500,10 +705,18 @@ export default function NotificationIcon({ userId }: { userId: number }) {
 
           {/* Footer */}
           <div className="px-5 py-2.5 border-t border-[#FFF3DA]/50 dark:border-[#3C6C5F]/20 bg-[#FFF3DA]/10 dark:bg-[#29453E]/10 flex items-center justify-between">
-            <p className="text-[10px] text-[#3C6C5F]/50 dark:text-[#9DAE7A]/50 flex items-center gap-1.5">
-              <RefreshCw size={10} className="animate-spin" />
-              Auto-refresh · 15s
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="text-[10px] text-[#3C6C5F]/50 dark:text-[#9DAE7A]/50 flex items-center gap-1.5">
+                <RefreshCw size={10} className="animate-spin" />
+                Auto-refresh · 15s
+              </p>
+              <button
+                onClick={toggleMute}
+                className="text-[10px] text-[#3C6C5F]/50 dark:text-[#9DAE7A]/50 hover:text-[#3C6C5F] dark:hover:text-[#9DAE7A] transition-colors flex items-center gap-1"
+              >
+                {isMuted ? '🔇 Activer le son' : '🔊 Son activé'}
+              </button>
+            </div>
             <p className="text-[10px] text-[#3C6C5F]/50 dark:text-[#9DAE7A]/50 font-medium">
               {notifications.length} notification{notifications.length !== 1 ? "s" : ""}
               {unreadCount > 0 && ` · ${unreadCount} non lue${unreadCount > 1 ? "s" : ""}`}

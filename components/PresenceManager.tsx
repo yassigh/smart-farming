@@ -217,7 +217,7 @@ export default function PresenceManager({
           }];
         }
       });
-      setSuccessMsg(`✅ Présence mise à jour avec succès`);
+      setSuccessMsg(` Présence mise à jour avec succès`);
       setTimeout(() => setSuccessMsg(null), 3000);
     } else {
       setErrorMsg(res.error || "❌ Erreur lors de la mise à jour de la présence.");

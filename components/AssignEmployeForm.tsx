@@ -117,7 +117,9 @@ export function AssignEmployeForm({
             <p className="font-bold text-[#29453E] dark:text-white text-sm">
               {employe?.prenom} {employe?.nom}
             </p>
-            <p className="text-xs text-[#3C6C5F]/60">{employeFerme.poste}</p>
+            <p className="text-xs text-[#3C6C5F]/60">
+              {employeFerme.poste} {employeFerme.salaire ? `· ${employeFerme.salaire} TND` : ''}
+            </p>
           </div>
         </div>
 

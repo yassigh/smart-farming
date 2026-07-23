@@ -16,7 +16,7 @@ export type ActionResponse<T = any> = {
   error?: string;
 };
 
-// ── Animal CRUD ────────────────────────────────────────────────────────────
+
 
 export async function addAnimalAction(
   data: any,
@@ -33,14 +33,14 @@ export async function addAnimalAction(
 
     const acteurNom = acteurId ? await getUserFullName(acteurId) : undefined;
 
-    // 🔔 Notifier tous les utilisateurs du système avec le nom de l'auteur
+    //  Notifier tous les utilisateurs du système avec le nom de l'auteur
     await notifyAllSystemUsers(
-      "🐄 Nouvel animal ajouté",
+      " Nouvel animal ajouté",
       `Un nouvel animal (${animal.type} - ${animal.race}) a été ajouté.`,
       acteurNom
     );
 
-    // 🔔 Notifier l'agriculteur propriétaire si différent de l'acteur
+    //  Notifier l'agriculteur propriétaire si différent de l'acteur
     try {
       const animalWithDetails = await db.animal.findUnique({
         where: { id: animal.id },

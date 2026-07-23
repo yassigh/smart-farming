@@ -50,7 +50,7 @@ export async function addCultureAction(
             include: {
               ferme: {
                 include: {
-                  agriculteur: true // ✅ Correction: agriculteur est inclus via la relation
+                  agriculteur: true //  Correction: agriculteur est inclus via la relation
                 }
               }
             },
@@ -62,7 +62,7 @@ export async function addCultureAction(
       if (proprietaire && proprietaire.id !== acteurId) {
         await createNotificationForUser(
           proprietaire.id,
-          "✅ Culture ajoutée sur votre terrain",
+          " Culture ajoutée sur votre terrain",
           `${acteurNom ?? "Un utilisateur"} a ajouté la culture "${culture.nom}" sur votre terrain.`
         );
       }
@@ -134,7 +134,7 @@ export async function deleteCultureAction(
           include: {
             ferme: {
               include: {
-                agriculteur: true // ✅ Correction
+                agriculteur: true //  Correction
               }
             }
           }
@@ -225,7 +225,7 @@ export async function addRecolteAction(
               include: {
                 ferme: {
                   include: {
-                    agriculteur: true // ✅ Correction
+                    agriculteur: true //  Correction
                   }
                 }
               }
@@ -312,7 +312,7 @@ export async function getCultureByIdAction(id: number): Promise<ActionResponse> 
           include: {
             ferme: {
               include: {
-                agriculteur: true // ✅ Correction
+                agriculteur: true //  Correction
               }
             }
           }
@@ -347,7 +347,7 @@ export async function getCulturesByFermeAction(fermeId: number): Promise<ActionR
           include: {
             ferme: {
               include: {
-                agriculteur: true // ✅ Correction
+                agriculteur: true //  Correction
               }
             }
           }
@@ -375,7 +375,7 @@ export async function getAllCulturesAction(): Promise<ActionResponse> {
           include: {
             ferme: {
               include: {
-                agriculteur: true // ✅ Correction
+                agriculteur: true //  Correction
               }
             }
           }
@@ -404,7 +404,7 @@ export async function getCulturesByTerrainAction(terrainId: number): Promise<Act
           include: {
             ferme: {
               include: {
-                agriculteur: true // ✅ Correction
+                agriculteur: true // Correction
               }
             }
           }

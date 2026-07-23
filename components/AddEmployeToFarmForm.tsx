@@ -118,7 +118,7 @@ export default function AddEmployeToFarmForm({ fermeId, availableEmployees }: Pr
 
           <div>
             <label className="block text-xs font-semibold text-[#29453E] dark:text-[#9DAE7A] mb-1">
-              Salaire Mensuel (€) <span className="text-red-500">*</span>
+              Salaire Mensuel (TND) <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3C6C5F]/40" />

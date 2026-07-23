@@ -10,9 +10,9 @@ export const PresenceModel = {
   async getAllToday() {
     const today = new Date();
     const start = new Date(today);
-    start.setHours(0, 0, 0, 0);
+    start.setUTCHours(0, 0, 0, 0);
     const end = new Date(today);
-    end.setHours(23, 59, 59, 999);
+    end.setUTCHours(23, 59, 59, 999);
 
     return await db.presence.findMany({
       where: {
@@ -44,9 +44,9 @@ export const PresenceModel = {
    */
   async getByDate(date: Date) {
     const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
+    start.setUTCHours(0, 0, 0, 0);
     const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
+    end.setUTCHours(23, 59, 59, 999);
 
     return await db.presence.findMany({
       where: {
@@ -88,9 +88,9 @@ export const PresenceModel = {
    */
   async savePresence(userId: number, date: Date, statut: StatutPresence, paye: boolean) {
     const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
+    start.setUTCHours(0, 0, 0, 0);
     const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
+    end.setUTCHours(23, 59, 59, 999);
 
     // Check if there is already a presence record for this user on this day
     const existing = await db.presence.findFirst({
@@ -191,7 +191,7 @@ export const PresenceModel = {
    */
   async getWorkedDaysUpToDate(userId: number, date: Date) {
     const targetDate = new Date(date);
-    targetDate.setHours(23, 59, 59, 999);
+    targetDate.setUTCHours(23, 59, 59, 999);
 
     return await db.presence.count({
       where: {
@@ -209,7 +209,7 @@ export const PresenceModel = {
    */
   async getAllWorkedDaysUpToDate(date: Date) {
     const targetDate = new Date(date);
-    targetDate.setHours(23, 59, 59, 999);
+    targetDate.setUTCHours(23, 59, 59, 999);
 
     const users = await db.utilisateur.findMany({
       select: { id: true },

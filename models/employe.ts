@@ -73,6 +73,49 @@ export const EmployeModel = {
         },
         terrainAssigne: {
           include: {
+            ferme: true,
+            animaux: { include: { categorie: true } },
+            cultures: { include: { categorie: true } },
+          },
+        },
+        animauxAssignes: {
+          include: {
+            animal: { include: { categorie: true, terrain: true } },
+          },
+        },
+        culturesAssignees: {
+          include: {
+            culture: { include: { categorie: true, terrain: true } },
+          },
+        },
+      },
+    });
+  },
+
+  // Récupérer toutes les fiches d'un employé (s'il travaille sur plusieurs fermes)
+  async getAllEmployeInfos(employeId: number) {
+    return db.employeFerme.findMany({
+      where: { employeId },
+      include: {
+        employe: true,
+        ferme: {
+          include: {
+            agriculteur: {
+              select: {
+                id: true,
+                nom: true,
+                prenom: true,
+                email: true,
+                telephone: true,
+                image: true,
+                role: true,
+              },
+            },
+          },
+        },
+        terrainAssigne: {
+          include: {
+            ferme: true,
             animaux: { include: { categorie: true } },
             cultures: { include: { categorie: true } },
           },

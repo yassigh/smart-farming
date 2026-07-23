@@ -4,7 +4,7 @@
 import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
 
-// ✅ Nouvelle fonction pour récupérer le nom complet d'un utilisateur
+//  Nouvelle fonction pour récupérer le nom complet d'un utilisateur
 export async function getUserFullName(userId: number): Promise<string | null> {
   try {
     const user = await db.utilisateur.findUnique({

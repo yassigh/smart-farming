@@ -16,6 +16,8 @@ import {
   Tag,
 } from "lucide-react";
 import DeleteAnimalButton from "@/components/DeleteAnimalButton";
+import DeleteTraitementButton from "@/components/DeleteTraitementButton";
+import DeleteVaccinationButton from "@/components/DeleteVaccinationButton";
 
 export async function generateMetadata({
   params,
@@ -221,10 +223,17 @@ export default async function AnimalDetailPage({
           ) : (
             <div className="divide-y divide-zinc-100 max-h-80 overflow-y-auto">
               {animal.traitements.map((t) => (
-                <div key={t.id} className="p-4 hover:bg-zinc-50 transition-colors">
+                <div key={t.id} className="p-4 hover:bg-zinc-50 transition-colors relative group">
                   <div className="flex justify-between items-start">
                     <p className="font-bold text-zinc-800 text-sm">{t.medicament}</p>
-                    <span className="text-xs text-zinc-400">{fmtDate(t.date)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-zinc-400">{fmtDate(t.date)}</span>
+                      {canMedical && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <DeleteTraitementButton id={t.id} animalId={animal.id} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <p className="text-xs text-zinc-500 mt-0.5 line-clamp-2">{t.description}</p>
                   {t.dosage && (
@@ -261,18 +270,25 @@ export default async function AnimalDetailPage({
           ) : (
             <div className="divide-y divide-zinc-100 max-h-80 overflow-y-auto">
               {animal.vaccinations.map((v) => (
-                <div key={v.id} className="p-4 hover:bg-zinc-50 transition-colors">
+                <div key={v.id} className="p-4 hover:bg-zinc-50 transition-colors relative group">
                   <div className="flex justify-between items-start">
                     <p className="font-bold text-zinc-800 text-sm">{v.nomVaccin}</p>
-                    <span
-                      className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                        v.statut === "A_JOUR"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {v.statut === "A_JOUR" ? "À jour" : "En retard"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          v.statut === "A_JOUR"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {v.statut === "A_JOUR" ? "À jour" : "En retard"}
+                      </span>
+                      {canMedical && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <DeleteVaccinationButton id={v.id} animalId={animal.id} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <p className="text-xs text-zinc-500 mt-0.5">
                     Administré le {fmtDate(v.dateAdministered)}

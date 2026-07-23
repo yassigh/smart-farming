@@ -2,10 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  MapPin, PawPrint, Wheat, Building2, Phone, Mail,
-  MessageCircle, User, Briefcase, AlertTriangle, Clock, Sprout,
-} from "lucide-react";
+import {MapPin, PawPrint, Wheat, Building2, Phone, Mail,MessageCircle, User, Briefcase, AlertTriangle, Clock, Sprout,} from "lucide-react";
 import { MessagerieModal } from "./MessagerieModal";
 
 interface EmployeDashboardProps {
@@ -118,7 +115,7 @@ export default function EmployeeDashboard({ employeInfo, currentUser }: EmployeD
             border: terrain ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(251,191,36,0.4)",
             fontSize: 12, fontWeight: 700, backdropFilter: "blur(4px)"
           }}>
-            {terrain ? "✅ Terrain assigné" : "⚠️ Pas de terrain"}
+            {terrain ? " Terrain assigné" : " Pas de terrain"}
           </div>
         </div>
 

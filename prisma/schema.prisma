@@ -1,12 +1,259 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Utilisateur {
+  id               Int            @id @default(autoincrement())
+  nom              String
+  prenom           String
+  email            String         @unique
+  motDePasse       String
+  telephone        String?
+  role             Role
+  createdAt        DateTime       @default(now())
+  image            String?
+  resetToken       String?        @unique
+  resetTokenExpiry DateTime?
+  twoFactorEnabled Boolean        @default(false)
+  twoFactorSecret  String?
+  depenses         Depense[]
+  employeFermes    EmployeFerme[]
+  fermes           Ferme[]
+  messagesRecus    Message[]      @relation("MessagesRecus")
+  messagesEnvoyes  Message[]      @relation("MessagesEnvoyes")
+  notifications    Notification[]
+  predictions      Prediction[]
+  presences        Presence[]
+  revenus          Revenu[]
+  traitements      Traitement[]
+  vaccinations     Vaccination[]
+}
+
+model Ferme {
+  id            Int            @id @default(autoincrement())
+  nom           String
+  adresse       String
+  superficie    Float
+  createdAt     DateTime       @default(now())
+  agriculteurId Int
+  depenses      Depense[]
+  employes      EmployeFerme[]
+  agriculteur   Utilisateur    @relation(fields: [agriculteurId], references: [id])
+  predictions   Prediction[]
+  revenus       Revenu[]
+  terrains      Terrain[]
+}
+
+model Terrain {
+  id               Int            @id @default(autoincrement())
+  nom              String
+  superficie       Float
+  typeSol          String
+  fermeId          Int
+  createdAt        DateTime       @default(now())
+  localisation     String?
+  updatedAt        DateTime       @updatedAt
+  latitude         Float?
+  longitude        Float?
+  animaux          Animal[]
+  cultures         Culture[]
+  employesAssignes EmployeFerme[]
+  ferme            Ferme          @relation(fields: [fermeId], references: [id])
+}
+
+model EmployeFerme {
+  id                Int              @id @default(autoincrement())
+  poste             String
+  salaire           Float
+  dateEmbauche      DateTime
+  employeId         Int
+  fermeId           Int
+  roleDescription   String?
+  terrainAssigneId  Int?
+  animauxAssignes   EmployeAnimal[]
+  culturesAssignees EmployeCulture[]
+  employe           Utilisateur      @relation(fields: [employeId], references: [id])
+  ferme             Ferme            @relation(fields: [fermeId], references: [id])
+  terrainAssigne    Terrain?         @relation(fields: [terrainAssigneId], references: [id])
+}
+
+model EmployeAnimal {
+  id             Int          @id @default(autoincrement())
+  employeFermeId Int
+  animalId       Int
+  animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  employeFerme   EmployeFerme @relation(fields: [employeFermeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeFermeId, animalId])
+}
+
+model EmployeCulture {
+  id             Int          @id @default(autoincrement())
+  employeFermeId Int
+  cultureId      Int
+  culture        Culture      @relation(fields: [cultureId], references: [id], onDelete: Cascade)
+  employeFerme   EmployeFerme @relation(fields: [employeFermeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeFermeId, cultureId])
+}
+
+model Message {
+  id             Int         @id @default(autoincrement())
+  contenu        String
+  lu             Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  expediteurId   Int
+  destinataireId Int
+  destinataire   Utilisateur @relation("MessagesRecus", fields: [destinataireId], references: [id])
+  expediteur     Utilisateur @relation("MessagesEnvoyes", fields: [expediteurId], references: [id])
+}
+
+model Categorie {
+  id       Int           @id @default(autoincrement())
+  nom      String
+  type     TypeCategorie
+  animaux  Animal[]
+  cultures Culture[]
+}
+
+model Animal {
+  id               Int             @id @default(autoincrement())
+  numero           String
+  type             String
+  race             String
+  sexe             Sexe
+  poids            Float
+  dateNaissance    DateTime
+  etatSante        String
+  terrainId        Int
+  categorieId      Int
+  categorie        Categorie       @relation(fields: [categorieId], references: [id])
+  terrain          Terrain         @relation(fields: [terrainId], references: [id])
+  employesAssignes EmployeAnimal[]
+  traitements      Traitement[]
+  vaccinations     Vaccination[]
+}
+
+model Traitement {
+  id            Int         @id @default(autoincrement())
+  date          DateTime
+  medicament    String
+  description   String
+  animalId      Int
+  veterinaireId Int
+  dateFin       DateTime?
+  dosage        String?
+  observation   String?
+  animal        Animal      @relation(fields: [animalId], references: [id])
+  veterinaire   Utilisateur @relation(fields: [veterinaireId], references: [id])
+}
+
+model Vaccination {
+  id               Int         @id @default(autoincrement())
+  nomVaccin        String
+  dateAdministered DateTime
+  dateRappel       DateTime?
+  statut           String
+  animalId         Int
+  veterinaireId    Int
+  createdAt        DateTime    @default(now())
+  animal           Animal      @relation(fields: [animalId], references: [id])
+  veterinaire      Utilisateur @relation(fields: [veterinaireId], references: [id])
+}
+
+model Culture {
+  id               Int              @id @default(autoincrement())
+  nom              String
+  datePlantation   DateTime
+  quantitePrevue   Float
+  etat             String
+  terrainId        Int
+  categorieId      Int
+  categorie        Categorie        @relation(fields: [categorieId], references: [id])
+  terrain          Terrain          @relation(fields: [terrainId], references: [id])
+  employesAssignes EmployeCulture[]
+  recoltes         Recolte[]
+}
+
+model Recolte {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  quantite  Float
+  cultureId Int
+  culture   Culture  @relation(fields: [cultureId], references: [id])
+}
+
+model Depense {
+  id          Int         @id @default(autoincrement())
+  date        DateTime
+  montant     Float
+  type        String
+  fermeId     Int
+  createdAt   DateTime    @default(now())
+  createdById Int
+  description String?
+  createdBy   Utilisateur @relation(fields: [createdById], references: [id])
+  ferme       Ferme       @relation(fields: [fermeId], references: [id])
+}
+
+model Revenu {
+  id          Int         @id @default(autoincrement())
+  date        DateTime
+  montant     Float
+  source      String
+  fermeId     Int
+  createdAt   DateTime    @default(now())
+  createdById Int
+  description String?
+  createdBy   Utilisateur @relation(fields: [createdById], references: [id])
+  ferme       Ferme       @relation(fields: [fermeId], references: [id])
+}
+
+model Prediction {
+  id          Int         @id @default(autoincrement())
+  type        String
+  resultat    String
+  date        DateTime    @default(now())
+  fermeId     Int
+  confiance   Float?
+  createdById Int
+  conseils    Conseil[]
+  createdBy   Utilisateur @relation(fields: [createdById], references: [id])
+  ferme       Ferme       @relation(fields: [fermeId], references: [id])
+}
+
+model Conseil {
+  id           Int        @id @default(autoincrement())
+  description  String
+  date         DateTime
+  predictionId Int
+  prediction   Prediction @relation(fields: [predictionId], references: [id])
+}
+
+model Notification {
+  id            Int                @id @default(autoincrement())
+  titre         String
+  message       String
+  dateEnvoi     DateTime           @default(now())
+  statut        StatutNotification
+  utilisateurId Int
+  utilisateur   Utilisateur        @relation(fields: [utilisateurId], references: [id])
+}
+
+model Presence {
+  id                Int            @id @default(autoincrement())
+  date              DateTime       @default(now())
+  statut            StatutPresence
+  paye              Boolean        @default(false)
+  certificatMedical String?
+  utilisateurId     Int
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  utilisateur       Utilisateur    @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
@@ -31,311 +278,8 @@ enum StatutNotification {
   NON_LUE
 }
 
-model Utilisateur {
-  id               Int      @id @default(autoincrement())
-  nom              String
-  prenom           String
-  email            String   @unique
-  motDePasse       String
-  telephone        String?
-  role             Role
-  image            String?  @db.Text
-  createdAt        DateTime @default(now())
-
-  // 🔐 Champs 2FA et Reset Password
-  twoFactorSecret  String?
-  twoFactorEnabled Boolean  @default(false)
-  resetToken       String?  @unique
-  resetTokenExpiry DateTime?
-
-  // Relations
-  fermes           Ferme[]
-  notifications    Notification[]
-  traitements      Traitement[]
-  vaccinations     Vaccination[]
-  employeFermes    EmployeFerme[]
-  depenses         Depense[]
-  revenus          Revenu[]
-  predictions      Prediction[]
-  presences        Presence[]
-
-  // Messagerie
-  messagesEnvoyes  Message[] @relation("MessagesEnvoyes")
-  messagesRecus    Message[] @relation("MessagesRecus")
-}
-
-model Ferme {
-  id         Int      @id @default(autoincrement())
-  nom        String
-  adresse    String
-  superficie Float
-  createdAt  DateTime @default(now())
-
-  agriculteurId Int
-  agriculteur   Utilisateur @relation(fields: [agriculteurId], references: [id])
-
-  terrains    Terrain[]
-  employes    EmployeFerme[]
-  depenses    Depense[]
-  revenus     Revenu[]
-  predictions Prediction[]
-}
-
-model Terrain {
-  id            Int      @id @default(autoincrement())
-  nom           String
-  superficie    Float
-  typeSol       String
-
-  localisation  String?
-  latitude      Float?
-  longitude     Float?
-
-  fermeId       Int
-  ferme         Ferme @relation(fields: [fermeId], references: [id])
-
-  animaux       Animal[]
-  cultures      Culture[]
-
-  // Relation inverse pour les employes assignes a ce terrain
-  employesAssignes EmployeFerme[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model EmployeFerme {
-  id              Int      @id @default(autoincrement())
-  poste           String
-  salaire         Float
-  dateEmbauche    DateTime
-  roleDescription String?
-
-  employeId Int
-  employe   Utilisateur @relation(fields: [employeId], references: [id])
-
-  fermeId Int
-  ferme   Ferme @relation(fields: [fermeId], references: [id])
-
-  // Terrain assigne (un seul terrain par employe)
-  terrainAssigneId Int?
-  terrainAssigne   Terrain? @relation(fields: [terrainAssigneId], references: [id])
-
-  // Animaux et cultures assignes (plusieurs)
-  animauxAssignes   EmployeAnimal[]
-  culturesAssignees EmployeCulture[]
-}
-
-// Table de jointure Employe <-> Animal
-model EmployeAnimal {
-  id             Int          @id @default(autoincrement())
-  employeFermeId Int
-  employeFerme   EmployeFerme @relation(fields: [employeFermeId], references: [id], onDelete: Cascade)
-  animalId       Int
-  animal         Animal       @relation(fields: [animalId], references: [id], onDelete: Cascade)
-
-  @@unique([employeFermeId, animalId])
-}
-
-// Table de jointure Employe <-> Culture
-model EmployeCulture {
-  id             Int          @id @default(autoincrement())
-  employeFermeId Int
-  employeFerme   EmployeFerme @relation(fields: [employeFermeId], references: [id], onDelete: Cascade)
-  cultureId      Int
-  culture        Culture      @relation(fields: [cultureId], references: [id], onDelete: Cascade)
-
-  @@unique([employeFermeId, cultureId])
-}
-
-// Messagerie entre employe et agriculteur
-model Message {
-  id        Int      @id @default(autoincrement())
-  contenu   String   @db.Text
-  lu        Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  expediteurId   Int
-  expediteur     Utilisateur @relation("MessagesEnvoyes", fields: [expediteurId], references: [id])
-
-  destinataireId Int
-  destinataire   Utilisateur @relation("MessagesRecus", fields: [destinataireId], references: [id])
-}
-
-model Categorie {
-  id   Int           @id @default(autoincrement())
-  nom  String
-  type TypeCategorie
-
-  animaux  Animal[]
-  cultures Culture[]
-}
-
-model Animal {
-  id            Int      @id @default(autoincrement())
-  numero        String
-  type          String
-  race          String
-  sexe          Sexe
-  poids         Float
-  dateNaissance DateTime
-  etatSante     String
-
-  terrainId Int
-  terrain   Terrain @relation(fields: [terrainId], references: [id])
-
-  categorieId Int
-  categorie   Categorie @relation(fields: [categorieId], references: [id])
-
-  traitements  Traitement[]
-  vaccinations Vaccination[]
-
-  // Relation inverse pour les employes assignes
-  employesAssignes EmployeAnimal[]
-}
-
-model Traitement {
-  id          Int      @id @default(autoincrement())
-  date        DateTime
-  dateFin     DateTime?
-  medicament  String
-  description String
-  dosage      String?
-  observation String?
-
-  animalId Int
-  animal   Animal @relation(fields: [animalId], references: [id])
-
-  veterinaireId Int
-  veterinaire   Utilisateur @relation(fields: [veterinaireId], references: [id])
-}
-
-model Vaccination {
-  id               Int      @id @default(autoincrement())
-  nomVaccin        String
-  dateAdministered DateTime
-  dateRappel       DateTime?
-  statut           String
-
-  animalId Int
-  animal   Animal @relation(fields: [animalId], references: [id])
-
-  veterinaireId Int
-  veterinaire   Utilisateur @relation(fields: [veterinaireId], references: [id])
-
-  createdAt DateTime @default(now())
-}
-
-model Culture {
-  id             Int      @id @default(autoincrement())
-  nom            String
-  datePlantation DateTime
-  quantitePrevue Float
-  etat           String
-
-  terrainId Int
-  terrain   Terrain @relation(fields: [terrainId], references: [id])
-
-  categorieId Int
-  categorie   Categorie @relation(fields: [categorieId], references: [id])
-
-  recoltes Recolte[]
-
-  // Relation inverse pour les employes assignes
-  employesAssignes EmployeCulture[]
-}
-
-model Recolte {
-  id       Int      @id @default(autoincrement())
-  date     DateTime
-  quantite Float
-
-  cultureId Int
-  culture   Culture @relation(fields: [cultureId], references: [id])
-}
-
-model Depense {
-  id          Int      @id @default(autoincrement())
-  date        DateTime
-  montant     Float
-  type        String
-  description String?
-  createdAt   DateTime @default(now())
-
-  fermeId Int
-  ferme   Ferme @relation(fields: [fermeId], references: [id])
-
-  createdById Int
-  createdBy   Utilisateur @relation(fields: [createdById], references: [id])
-}
-
-model Revenu {
-  id          Int      @id @default(autoincrement())
-  date        DateTime
-  montant     Float
-  source      String
-  description String?
-  createdAt   DateTime @default(now())
-
-  fermeId Int
-  ferme   Ferme @relation(fields: [fermeId], references: [id])
-
-  createdById Int
-  createdBy   Utilisateur @relation(fields: [createdById], references: [id])
-}
-
-model Prediction {
-  id        Int      @id @default(autoincrement())
-  type      String
-  resultat  String
-  confiance Float?
-  date      DateTime @default(now())
-
-  fermeId Int
-  ferme   Ferme @relation(fields: [fermeId], references: [id])
-
-  createdById Int
-  createdBy   Utilisateur @relation(fields: [createdById], references: [id])
-
-  conseils Conseil[]
-}
-
-model Conseil {
-  id          Int      @id @default(autoincrement())
-  description String
-  date        DateTime
-
-  predictionId Int
-  prediction   Prediction @relation(fields: [predictionId], references: [id])
-}
-
-model Notification {
-  id        Int                @id @default(autoincrement())
-  titre     String
-  message   String
-  dateEnvoi DateTime           @default(now())
-  statut    StatutNotification
-
-  utilisateurId Int
-  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
-}
-
 enum StatutPresence {
   PRESENT
   ABSENT
   MALADE
-}
-
-model Presence {
-  id                Int            @id @default(autoincrement())
-  date              DateTime       @default(now())
-  statut            StatutPresence
-  paye              Boolean        @default(false)
-  certificatMedical String?        @db.Text
-
-  utilisateurId     Int
-  utilisateur       Utilisateur    @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
-
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
 }

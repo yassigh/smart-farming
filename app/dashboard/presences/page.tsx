@@ -25,12 +25,25 @@ export default async function PresencesPage() {
 
   if (isManager) {
     // 1. Fetch staff members (Employees and Veterinarians)
-    const staffUsers = await db.utilisateur.findMany({
-      where: {
-        role: {
-          in: [Role.EMPLOYE, Role.VETERINAIRE],
-        },
+    let staffUsersWhere: any = {
+      role: {
+        in: [Role.EMPLOYE, Role.VETERINAIRE],
       },
+    };
+
+    if (user.role === Role.AGRICULTEUR) {
+      staffUsersWhere = {
+        ...staffUsersWhere,
+        OR: [
+          { employeFermes: { some: { ferme: { agriculteurId: user.id } } } },
+          { traitements: { some: { animal: { terrain: { ferme: { agriculteurId: user.id } } } } } },
+          { vaccinations: { some: { animal: { terrain: { ferme: { agriculteurId: user.id } } } } } },
+        ]
+      };
+    }
+
+    const staffUsers = await db.utilisateur.findMany({
+      where: staffUsersWhere,
       select: {
         id: true,
         nom: true,
@@ -45,7 +58,12 @@ export default async function PresencesPage() {
     });
 
     // 2. Fetch today's presences
-    const initialPresences = await PresenceModel.getAllToday();
+    let initialPresences = await PresenceModel.getAllToday();
+
+    if (user.role !== Role.ADMIN) {
+      const staffIds = staffUsers.map((u) => u.id);
+      initialPresences = initialPresences.filter((p) => staffIds.includes(p.utilisateurId));
+    }
 
     // 3. Fetch count of worked days for each user for current month
     const currentYear = new Date().getFullYear();

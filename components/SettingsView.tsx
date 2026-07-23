@@ -1,8 +1,7 @@
-// components/SettingsView.tsx
-
+// components/SettingsView.tsx - VERSION CORRIGÉE
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import {
   User,
   Moon,
@@ -30,9 +29,120 @@ import Sidebar from "./Sidebar";
 import { updateUtilisateurAction } from "@/actions/utilisateur";
 import { uploadProfileImage } from "@/actions/upload";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useTranslation } from "@/contexts/TranslationContext";
+
+//  TEXTES DE LA PAGE - DÉPLACÉS HORS DU COMPOSANT
+const PAGE_TEXTS = {
+  // Header
+  settings_title: "Paramètres",
+  settings_subtitle: "Gérez les préférences de votre compte",
+  
+  // Profile
+  profile: "Profil",
+  profile_desc: "Gérez vos informations personnelles",
+  profile_title: "Profil",
+  profile_info: "Informations personnelles",
+  profile_edit: "Modifier le profil",
+  profile_cancel: "Annuler",
+  profile_save: "Enregistrer",
+  profile_saving: "Enregistrement...",
+  profile_success: "Profil modifié avec succès !",
+  profile_image_updated: "Image de profil mise à jour !",
+  profile_image_removed: "Image de profil supprimée",
+  profile_online: "En ligne",
+  profile_uploading: "Téléchargement en cours...",
+  profile_first_name: "Prénom",
+  profile_last_name: "Nom",
+  profile_email: "Email",
+  profile_phone: "Téléphone",
+  profile_new_password: "Nouveau mot de passe",
+  profile_password_placeholder: "••••••••",
+  profile_role: "Rôle",
+  profile_status: "Statut",
+  profile_active: "Actif",
+  
+  // Theme
+  appearance: "Apparence",
+  appearance_desc: "Choisissez votre thème préféré",
+  appearance_light: "Mode Clair",
+  appearance_light_desc: "Thème lumineux",
+  appearance_dark: "Mode Sombre",
+  appearance_dark_desc: "Thème nocturne",
+  appearance_active: "Actif",
+  
+  // Language
+  language_title: "Langue",
+  language_desc: "Choisissez votre langue préférée",
+  language_selected: "Sélectionné",
+  language_fr: "Français",
+  language_en: "English",
+  language_ar: "العربية",
+  
+  // Notifications
+  notifications: "Notifications",
+  notifications_desc: "Gérez vos alertes",
+  notifications_email: "Notifications par email",
+  notifications_email_desc: "Recevez des notifications par email",
+  notifications_push: "Notifications push",
+  notifications_push_desc: "Recevez des notifications push",
+  notifications_security: "Alertes de sécurité",
+  notifications_security_desc: "Notifications de sécurité importantes",
+  notifications_weekly: "Rapports hebdomadaires",
+  notifications_weekly_desc: "Récapitulatif hebdomadaire",
+  
+  // Security
+  security: "Sécurité",
+  security_desc: "Paramètres de sécurité du compte",
+  security_2fa: "Authentification à deux facteurs",
+  security_2fa_desc: "Ajoutez une couche de sécurité supplémentaire",
+  security_2fa_activate: "Activer",
+  security_sessions: "Sessions actives",
+  security_sessions_desc: "Gérez vos sessions",
+  security_sessions_view: "Voir tout",
+  security_password: "Changer le mot de passe",
+  security_password_desc: "Modifiez votre mot de passe",
+  security_password_change: "Modifier",
+  
+  // Cards
+  card_profile: "Profil",
+  card_theme: "Apparence",
+  card_language: "Langue",
+  card_notifications: "Notifications",
+  card_security: "Sécurité",
+  
+  // Info cards
+  info_email: "Email",
+  info_phone: "Téléphone",
+  info_role: "Rôle",
+  info_status: "Statut",
+  info_active: "Actif",
+  
+  // Errors
+  error_upload: "Erreur lors du téléchargement",
+  error_image_upload: "Erreur lors du téléchargement de l'image",
+  
+  // User role
+  user_role: "Utilisateur",
+};
 
 export default function SettingsView({ user }: any) {
-  const [language, setLanguage] = useState("fr");
+  //  AJOUT DE setLanguage DANS LA DESTRUCTURATION
+  const { language, setLanguage, t, translateAllTexts, isTranslating } = useTranslation();
+  const { theme, toggleTheme, setTheme } = useTheme();
+
+  //  EFFET DE TRADUCTION - avec cleanup
+  useEffect(() => {
+    let isMounted = true;
+    const doTranslation = async () => {
+      if (isMounted) {
+        await translateAllTexts(PAGE_TEXTS, language === "fr" ? "fr" : language);
+      }
+    };
+    doTranslation();
+    return () => { isMounted = false; };
+  }, [language, translateAllTexts]);
+
+  //  STATES
   const [selected, setSelected] = useState("profile");
   const [prenom, setPrenom] = useState(user.prenom);
   const [nom, setNom] = useState(user.nom);
@@ -48,8 +158,10 @@ export default function SettingsView({ user }: any) {
   const [imagePreview, setImagePreview] = useState<string | null>(user.image || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { theme, toggleTheme, setTheme } = useTheme();
+  //  Fonction t mémorisée
+  const _t = useCallback((key: string) => t(key, PAGE_TEXTS), [t]);
 
+  //  HANDLERS
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -67,7 +179,7 @@ export default function SettingsView({ user }: any) {
     setLoading(false);
 
     if (result.success) {
-      setSuccessMessage("✅ Profil modifié avec succès !");
+      setSuccessMessage(_t('profile_success'));
       setEditMode(false);
       setTimeout(() => setSuccessMessage(""), 3000);
     } else {
@@ -93,14 +205,14 @@ export default function SettingsView({ user }: any) {
       const result = await uploadProfileImage(formData);
       if (result.success && result.url) {
         setProfileImage(result.url);
-        setSuccessMessage("✅ Image de profil mise à jour !");
+        setSuccessMessage(_t('profile_image_updated'));
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
-        alert(result.error || "Erreur lors du téléchargement");
+        alert(result.error || _t('error_upload'));
         setImagePreview(user.image || null);
       }
     } catch (error) {
-      alert("Erreur lors du téléchargement de l'image");
+      alert(_t('error_image_upload'));
       setImagePreview(user.image || null);
     } finally {
       setUploadingImage(false);
@@ -113,75 +225,121 @@ export default function SettingsView({ user }: any) {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    setSuccessMessage("✅ Image de profil supprimée");
+    setSuccessMessage(_t('profile_image_removed'));
     setTimeout(() => setSuccessMessage(""), 3000);
   };
 
+  //  SETTINGS CARDS
   const settingsCards = [
     {
       id: "profile",
       icon: User,
-      title: "Profil",
-      description: "Gérez vos informations personnelles",
+      title: _t('card_profile'),
+      description: _t('profile_desc'),
       color: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
     },
     {
       id: "theme",
       icon: Palette,
-      title: "Apparence",
-      description: "Thème clair ou sombre",
+      title: _t('card_theme'),
+      description: _t('appearance_desc'),
       color: "bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
     },
     {
       id: "language",
       icon: Globe,
-      title: "Langue",
-      description: "Préférences linguistiques",
+      title: _t('card_language'),
+      description: _t('language_desc'),
       color: "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
     },
     {
       id: "notifications",
       icon: Bell,
-      title: "Notifications",
-      description: "Gérez vos alertes",
+      title: _t('card_notifications'),
+      description: _t('notifications_desc'),
       color: "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",
     },
     {
       id: "security",
       icon: Shield,
-      title: "Sécurité",
-      description: "Paramètres de sécurité",
+      title: _t('card_security'),
+      description: _t('security_desc'),
       color: "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400",
     },
   ];
 
+  //  INFO CARDS
   const infoCards = [
     { 
       icon: Mail, 
-      label: "Email", 
+      label: _t('info_email'), 
       value: user.email, 
       color: "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800" 
     },
     { 
       icon: Phone, 
-      label: "Téléphone", 
+      label: _t('info_phone'), 
       value: user.telephone || "-", 
       color: "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800" 
     },
     { 
       icon: Shield, 
-      label: "Rôle", 
+      label: _t('info_role'), 
       value: user.role, 
       color: "bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800" 
     },
     { 
       icon: Award, 
-      label: "Statut", 
-      value: "Actif", 
+      label: _t('info_status'), 
+      value: _t('info_active'), 
       color: "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800" 
     },
   ];
 
+  //  NOTIFICATIONS
+  const notificationItems = [
+    { 
+      title: _t('notifications_email'), 
+      description: _t('notifications_email_desc'), 
+      enabled: true 
+    },
+    { 
+      title: _t('notifications_push'), 
+      description: _t('notifications_push_desc'), 
+      enabled: false 
+    },
+    { 
+      title: _t('notifications_security'), 
+      description: _t('notifications_security_desc'), 
+      enabled: true 
+    },
+    { 
+      title: _t('notifications_weekly'), 
+      description: _t('notifications_weekly_desc'), 
+      enabled: false 
+    },
+  ];
+
+  //  LANGUES DISPONIBLES
+  const availableLanguages = [
+    { code: "fr", label: _t('language_fr'), flag: "🇫🇷" },
+    { code: "en", label: _t('language_en'), flag: "🇬🇧" },
+    { code: "ar", label: _t('language_ar'), flag: "🇲🇦" },
+  ];
+
+  // Affichage du loader pendant la traduction
+  if (isTranslating) {
+    return (
+      <div className="min-h-screen flex bg-[#0d1a15]">
+        <Sidebar connectedUser={user} />
+        <main className="flex-1 p-8 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9DAE7A]"></div>
+        </main>
+      </div>
+    );
+  }
+
+  //  RENDU PRINCIPAL
   return (
     <div className={`min-h-screen flex ${theme === 'dark' ? 'bg-[#0d1a15]' : 'bg-[#F8F6F3]'}`}>
       <Sidebar connectedUser={user} />
@@ -192,10 +350,10 @@ export default function SettingsView({ user }: any) {
           <div>
             <h1 className={`text-4xl font-bold flex items-center gap-3 ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
               <Settings className={`w-8 h-8 ${theme === 'dark' ? 'text-emerald-400' : 'text-[#3C6C5F]'}`} />
-              Paramètres
+              {_t('settings_title')}
             </h1>
             <p className={`mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
-              Gérez les préférences de votre compte
+              {_t('settings_subtitle')}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -211,7 +369,7 @@ export default function SettingsView({ user }: any) {
             </button>
             <div className={`px-4 py-2 rounded-full ${theme === 'dark' ? 'bg-[#1a2e28] text-emerald-400' : 'bg-[#FFF3DA] text-[#3C6C5F]'}`}>
               <span className="text-sm font-medium">
-                {user.role || "Utilisateur"}
+                {user.role || _t('user_role')}
               </span>
             </div>
           </div>
@@ -311,12 +469,12 @@ export default function SettingsView({ user }: any) {
                         </span>
                         <span className="bg-emerald-400/30 px-3 py-1 rounded-full text-sm backdrop-blur-sm flex items-center gap-1">
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          En ligne
+                          {_t('profile_online')}
                         </span>
                       </div>
                       {uploadingImage && (
                         <p className="text-xs text-white/80 mt-1">
-                          Téléchargement en cours...
+                          {_t('profile_uploading')}
                         </p>
                       )}
                     </div>
@@ -326,7 +484,7 @@ export default function SettingsView({ user }: any) {
                     className="flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-3 rounded-xl transition-all"
                   >
                     <Pencil className="w-4 h-4" />
-                    {editMode ? "Annuler" : "Modifier le profil"}
+                    {editMode ? _t('profile_cancel') : _t('profile_edit')}
                   </button>
                 </div>
               </div>
@@ -354,13 +512,13 @@ export default function SettingsView({ user }: any) {
                 <div className="px-8 pb-8">
                   <div className={`border-t pt-8 ${theme === 'dark' ? 'border-[#2a3f38]' : 'border-[#E8E3DC]'}`}>
                     <h3 className={`text-xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
-                      Modifier mes informations
+                      {_t('profile_info')}
                     </h3>
                     <form onSubmit={handleUpdate} className="space-y-6">
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
                           <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
-                            Prénom
+                            {_t('profile_first_name')}
                           </label>
                           <input
                             value={prenom}
@@ -374,7 +532,7 @@ export default function SettingsView({ user }: any) {
                         </div>
                         <div>
                           <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
-                            Nom
+                            {_t('profile_last_name')}
                           </label>
                           <input
                             value={nom}
@@ -388,7 +546,7 @@ export default function SettingsView({ user }: any) {
                         </div>
                         <div>
                           <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
-                            Email
+                            {_t('profile_email')}
                           </label>
                           <input
                             value={email}
@@ -402,7 +560,7 @@ export default function SettingsView({ user }: any) {
                         </div>
                         <div>
                           <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
-                            Téléphone
+                            {_t('profile_phone')}
                           </label>
                           <input
                             value={telephone}
@@ -416,14 +574,14 @@ export default function SettingsView({ user }: any) {
                         </div>
                         <div className="md:col-span-2">
                           <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-[#29453E]'}`}>
-                            Nouveau mot de passe
+                            {_t('profile_new_password')}
                           </label>
                           <div className="relative">
                             <input
                               type={showPassword ? "text" : "password"}
                               value={motDePasse}
                               onChange={(e) => setMotDePasse(e.target.value)}
-                              placeholder="••••••••"
+                              placeholder={_t('profile_password_placeholder')}
                               className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all pr-12 ${
                                 theme === 'dark' 
                                   ? 'border-[#2a3f38] bg-[#0d1a15] text-white focus:border-[#3C6C5F] focus:ring-2 focus:ring-[#3C6C5F]/20' 
@@ -449,7 +607,7 @@ export default function SettingsView({ user }: any) {
                           className="flex items-center gap-2 bg-[#3C6C5F] hover:bg-[#29453E] text-white px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#3C6C5F]/20 disabled:opacity-50"
                         >
                           <Save className="w-5 h-5" />
-                          {loading ? "Enregistrement..." : "Enregistrer"}
+                          {loading ? _t('profile_saving') : _t('profile_save')}
                         </button>
                         <button
                           type="button"
@@ -460,7 +618,7 @@ export default function SettingsView({ user }: any) {
                               : 'border-[#E8E3DC] text-[#29453E] hover:border-[#3C6C5F]'
                           }`}
                         >
-                          Annuler
+                          {_t('profile_cancel')}
                         </button>
                       </div>
                       {successMessage && (
@@ -491,10 +649,10 @@ export default function SettingsView({ user }: any) {
                 </div>
                 <div>
                   <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
-                    Apparence
+                    {_t('appearance')}
                   </h2>
                   <p className={theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}>
-                    Choisissez votre thème préféré
+                    {_t('appearance_desc')}
                   </p>
                 </div>
               </div>
@@ -513,14 +671,14 @@ export default function SettingsView({ user }: any) {
                     ☀️
                   </div>
                   <h3 className={`font-bold mt-4 ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
-                    Mode Clair
+                    {_t('appearance_light')}
                   </h3>
                   <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
-                    Thème lumineux
+                    {_t('appearance_light_desc')}
                   </p>
                   {theme === "light" && (
                     <div className="mt-3 inline-flex items-center gap-1 bg-[#3C6C5F] text-white px-3 py-1 rounded-full text-xs">
-                      <Check className="w-3 h-3" /> Actif
+                      <Check className="w-3 h-3" /> {_t('appearance_active')}
                     </div>
                   )}
                 </button>
@@ -538,14 +696,14 @@ export default function SettingsView({ user }: any) {
                     🌙
                   </div>
                   <h3 className={`font-bold mt-4 ${theme === "dark" ? 'text-white' : 'text-[#29453E]'}`}>
-                    Mode Sombre
+                    {_t('appearance_dark')}
                   </h3>
                   <p className={`text-sm ${theme === "dark" ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
-                    Thème nocturne
+                    {_t('appearance_dark_desc')}
                   </p>
                   {theme === "dark" && (
                     <div className="mt-3 inline-flex items-center gap-1 bg-[#3C6C5F] text-white px-3 py-1 rounded-full text-xs">
-                      <Check className="w-3 h-3" /> Actif
+                      <Check className="w-3 h-3" /> {_t('appearance_active')}
                     </div>
                   )}
                 </button>
@@ -564,19 +722,15 @@ export default function SettingsView({ user }: any) {
                 </div>
                 <div>
                   <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
-                    Langue
+                    {_t('language_title')}
                   </h2>
                   <p className={theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}>
-                    Choisissez votre langue préférée
+                    {_t('language_desc')}
                   </p>
                 </div>
               </div>
               <div className="grid md:grid-cols-3 gap-4">
-                {[
-                  { code: "fr", label: "Français", flag: "🇫🇷" },
-                  { code: "en", label: "English", flag: "🇬🇧" },
-                  { code: "ar", label: "العربية", flag: "🇲🇦" },
-                ].map((lang) => (
+                {availableLanguages.map((lang) => (
                   <button
                     key={lang.code}
                     onClick={() => setLanguage(lang.code)}
@@ -596,7 +750,7 @@ export default function SettingsView({ user }: any) {
                     </h3>
                     {language === lang.code && (
                       <div className="mt-3 inline-flex items-center gap-1 bg-[#3C6C5F] text-white px-3 py-1 rounded-full text-xs">
-                        <Check className="w-3 h-3" /> Sélectionné
+                        <Check className="w-3 h-3" /> {_t('language_selected')}
                       </div>
                     )}
                   </button>
@@ -616,20 +770,15 @@ export default function SettingsView({ user }: any) {
                 </div>
                 <div>
                   <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
-                    Notifications
+                    {_t('notifications')}
                   </h2>
                   <p className={theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}>
-                    Gérez vos alertes
+                    {_t('notifications_desc')}
                   </p>
                 </div>
               </div>
               <div className="space-y-4">
-                {[
-                  { title: "Notifications par email", description: "Recevez des notifications par email", enabled: true },
-                  { title: "Notifications push", description: "Recevez des notifications push", enabled: false },
-                  { title: "Alertes de sécurité", description: "Notifications de sécurité importantes", enabled: true },
-                  { title: "Rapports hebdomadaires", description: "Récapitulatif hebdomadaire", enabled: false },
-                ].map((item, index) => (
+                {notificationItems.map((item, index) => (
                   <div key={index} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                     theme === 'dark' 
                       ? 'border-[#2a3f38] hover:border-[#3C6C5F]' 
@@ -669,10 +818,10 @@ export default function SettingsView({ user }: any) {
                 </div>
                 <div>
                   <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
-                    Sécurité
+                    {_t('security')}
                   </h2>
                   <p className={theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}>
-                    Paramètres de sécurité du compte
+                    {_t('security_desc')}
                   </p>
                 </div>
               </div>
@@ -685,14 +834,14 @@ export default function SettingsView({ user }: any) {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className={`font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-700'}`}>
-                        Authentification à deux facteurs
+                        {_t('security_2fa')}
                       </h4>
                       <p className={`text-sm ${theme === 'dark' ? 'text-red-400/70' : 'text-red-600/70'}`}>
-                        Ajoutez une couche de sécurité supplémentaire
+                        {_t('security_2fa_desc')}
                       </p>
                     </div>
                     <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all">
-                      Activer
+                      {_t('security_2fa_activate')}
                     </button>
                   </div>
                 </div>
@@ -703,14 +852,14 @@ export default function SettingsView({ user }: any) {
                 }`}>
                   <div>
                     <h4 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
-                      Sessions actives
+                      {_t('security_sessions')}
                     </h4>
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
-                      Gérez vos sessions
+                      {_t('security_sessions_desc')}
                     </p>
                   </div>
                   <button className={`font-medium ${theme === 'dark' ? 'text-emerald-400 hover:text-emerald-300' : 'text-[#3C6C5F] hover:text-[#29453E]'}`}>
-                    Voir tout
+                    {_t('security_sessions_view')}
                   </button>
                 </div>
                 <div className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
@@ -720,14 +869,14 @@ export default function SettingsView({ user }: any) {
                 }`}>
                   <div>
                     <h4 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-[#29453E]'}`}>
-                      Changer le mot de passe
+                      {_t('security_password')}
                     </h4>
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-[#3C6C5F]/60'}`}>
-                      Modifiez votre mot de passe
+                      {_t('security_password_desc')}
                     </p>
                   </div>
                   <button className="bg-[#3C6C5F] text-white px-4 py-2 rounded-lg hover:bg-[#29453E] transition-all">
-                    Modifier
+                    {_t('security_password_change')}
                   </button>
                 </div>
               </div>

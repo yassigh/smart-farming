@@ -10,6 +10,6 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
-  // ✅ Supprimer ThemeProvider d'ici car il est déjà dans le layout
+  //  Supprimer ThemeProvider d'ici car il est déjà dans le layout
   return <SettingsView user={user} />;
 }

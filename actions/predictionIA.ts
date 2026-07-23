@@ -91,7 +91,7 @@ export async function getFarmHealthScore(fermeId: number) {
     if (!ferme) return { success: false, error: "Ferme non trouvée" };
     
     // Utiliser le service IA
-    const healthScore = await aiService['calculateHealthScore'](ferme);
+    const healthScore = await aiService['calculateHealthScore'](ferme, null);
     return { success: true, data: healthScore };
   } catch (error) {
     console.error("Erreur calcul score:", error);

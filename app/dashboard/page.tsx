@@ -66,12 +66,33 @@ export default async function DashboardPage() {
       totalTerrains: terrains.length,
       totalAnimaux: animaux.length,
       totalCultures: cultures.length,
+      fermes: fermes,
+      terrains: terrains,
     };
   }
 
   let employeInfo = undefined;
   if (user.role === Role.EMPLOYE) {
-    employeInfo = await EmployeModel.getEmployeInfo(currentUserId);
+    const rawInfos = await EmployeModel.getAllEmployeInfos(currentUserId);
+    if (rawInfos && rawInfos.length > 0) {
+      const [allTerrains, allAnimaux, allCultures] = await Promise.all([
+        TerrainModel.getByEmploye(currentUserId),
+        AnimalModel.getByEmploye(currentUserId),
+        CultureModel.getByEmploye(currentUserId),
+      ]);
+
+      const terrainsAssignes = rawInfos
+        .map((ri) => ri.terrainAssigne)
+        .filter((t): t is NonNullable<typeof t> => t !== null);
+
+      employeInfo = {
+        ...rawInfos[0],
+        terrains: allTerrains,
+        terrainsAssignes: terrainsAssignes,
+        animaux: allAnimaux,
+        cultures: allCultures,
+      };
+    }
   }
 
   return (

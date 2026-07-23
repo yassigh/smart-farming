@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { UtilisateurModel, CreateUtilisateurInput, comparePassword } from "@/models/utilisateur";
 
-// ✅ Importer depuis password.ts
+//  Importer depuis password.ts
 import {
   requestPasswordReset as _requestPasswordReset,
   resetPassword as _resetPassword,
@@ -34,7 +34,7 @@ export type AuthActionResponse = {
   error?: string;
 };
 
-// ✅ Toutes les fonctions exportées sont async
+//  Toutes les fonctions exportées sont async
 
 // Authentification
 export async function getConnectedUser() {
@@ -109,7 +109,7 @@ export async function logoutAction() {
   redirect("/login");
 }
 
-// ✅ Réexporter les fonctions de password.ts (toutes async)
+//  Réexporter les fonctions de password.ts (toutes async)
 export async function requestPasswordReset(email: string) {
   return _requestPasswordReset(email);
 }

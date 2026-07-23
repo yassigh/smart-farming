@@ -33,11 +33,19 @@ export default async function MessagesPage() {
     email?: string;
   }>;
 
+  const contactsById = new Map<number, (typeof contacts)[number]>();
+
+  const addContact = (contact: (typeof contacts)[number]) => {
+    if (!contactsById.has(contact.id)) {
+      contactsById.set(contact.id, contact);
+    }
+  };
+
   if (currentUser.role === Role.EMPLOYE) {
     const employeInfo = await EmployeModel.getEmployeInfo(currentUserId);
     const agriculteur = employeInfo?.ferme?.agriculteur;
     if (agriculteur) {
-      contacts.push({
+      addContact({
         id: agriculteur.id,
         nom: agriculteur.nom,
         prenom: agriculteur.prenom,
@@ -49,7 +57,7 @@ export default async function MessagesPage() {
   } else {
     const employes = await EmployeModel.getByAgriculteur(currentUserId);
     for (const employeFerme of employes) {
-      contacts.push({
+      addContact({
         id: employeFerme.employe.id,
         nom: employeFerme.employe.nom,
         prenom: employeFerme.employe.prenom,
@@ -60,5 +68,5 @@ export default async function MessagesPage() {
     }
   }
 
-  return <MessagesCenter currentUser={currentUser} contacts={contacts} />;
+  return <MessagesCenter currentUser={currentUser} contacts={Array.from(contactsById.values())} />;
 }

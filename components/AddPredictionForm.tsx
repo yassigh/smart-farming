@@ -57,7 +57,7 @@ export default function AddPredictionForm({ fermes, userId }: AddPredictionFormP
     setLoading(false);
 
     if (res.success) {
-      setMessage({ type: "success", text: "✅ Prédiction générée et enregistrée !" });
+      setMessage({ type: "success", text: " Prédiction générée et enregistrée !" });
       setResultat("");
       setConfiance("");
     } else {

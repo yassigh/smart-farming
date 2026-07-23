@@ -9,7 +9,7 @@ import QRCode from 'qrcode';
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
-// ✅ TYPE POUR LES RÉPONSES
+//  TYPE POUR LES RÉPONSES
 export type PasswordActionResponse = {
   success: boolean;
   error?: string;
@@ -19,7 +19,7 @@ export type PasswordActionResponse = {
 };
 
 // ============================================
-// 1. 🔐 FORGOT PASSWORD - DEMANDE
+// 1.  FORGOT PASSWORD - DEMANDE
 // ============================================
 export async function requestPasswordReset(email: string): Promise<PasswordActionResponse> {
   try {
@@ -178,7 +178,7 @@ export async function loginWithTwoFactor(
       return { success: false, error: "Email ou mot de passe incorrect." };
     }
 
-    // ✅ Vérification twoFactorEnabled
+    //  Vérification twoFactorEnabled
     if (user.twoFactorEnabled) {
       if (!twoFactorToken) {
         return { 
@@ -188,7 +188,7 @@ export async function loginWithTwoFactor(
         };
       }
 
-      // ✅ Vérifier que twoFactorSecret n'est pas null
+      //  Vérifier que twoFactorSecret n'est pas null
       if (!user.twoFactorSecret) {
         return { success: false, error: "2FA mal configuré." };
       }

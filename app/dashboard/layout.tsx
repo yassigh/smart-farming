@@ -69,30 +69,8 @@ export default async function DashboardLayout({
               <NotificationIconWrapper userId={user.id} />
             </div>
 
-            {/* Mini profil */}
-            <div
-              className="hidden sm:flex items-center gap-2.5 px-3 py-2 rounded-xl"
-              style={{
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border-color)",
-                boxShadow: "var(--shadow-xs)",
-              }}
-            >
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
-              >
-                {(user.prenom?.[0] || "").toUpperCase() + (user.nom?.[0] || "").toUpperCase()}
-              </div>
-              <div className="hidden md:block leading-tight">
-                <p className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
-                  {user.prenom} {user.nom}
-                </p>
-                <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                  {user.role}
-                </p>
-              </div>
-            </div>
+         
+            
           </div>
         </header>
 

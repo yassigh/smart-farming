@@ -186,9 +186,9 @@ export async function getPresenceByUserAndDateAction(
     }
 
     const start = new Date(parsedDate);
-    start.setHours(0, 0, 0, 0);
+    start.setUTCHours(0, 0, 0, 0);
     const end = new Date(parsedDate);
-    end.setHours(23, 59, 59, 999);
+    end.setUTCHours(23, 59, 59, 999);
 
     const presence = await db.presence.findFirst({
       where: {
@@ -230,8 +230,8 @@ export async function getUserPresencesBetweenDatesAction(
       return { success: false, error: "Dates invalides." };
     }
 
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
+    start.setUTCHours(0, 0, 0, 0);
+    end.setUTCHours(23, 59, 59, 999);
 
     const presences = await db.presence.findMany({
       where: {
@@ -368,8 +368,8 @@ export async function getPresenceStatisticsAction(
       return { success: false, error: "Dates invalides." };
     }
 
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
+    start.setUTCHours(0, 0, 0, 0);
+    end.setUTCHours(23, 59, 59, 999);
 
     // Get total users
     const totalUsers = await db.utilisateur.count();

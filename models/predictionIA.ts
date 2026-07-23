@@ -8,11 +8,13 @@ export type TypePrediction =
   | "IRRIGATION"
   | "RECOLTE";
 
+export type NiveauRisque = "FAIBLE" | "MOYEN" | "ELEVE";
+
 export interface PredictionIA {
   resultat: string;
   confiance: number;
   recommandation?: string;
-  risque?: "FAIBLE" | "MOYEN" | "ELEVE";
+  risque?: NiveauRisque;
   facteurs?: string[];
 }
 

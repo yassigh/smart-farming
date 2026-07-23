@@ -608,7 +608,7 @@ export async function POST(request: NextRequest) {
     // ============================================
     
     const pdfBuffer = doc.output('arraybuffer');
-    console.log(`✅ PDF généré: ${pdfBuffer.byteLength} bytes`);
+    console.log(` PDF généré: ${pdfBuffer.byteLength} bytes`);
 
     return new NextResponse(pdfBuffer, {
       status: 200,

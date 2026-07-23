@@ -148,8 +148,8 @@ export default function AddVaccinationForm({
             </label>
             <div className="flex gap-3">
               {[
-                { value: "A_JOUR", label: "✅ À jour", cls: "text-emerald-700 border-emerald-400 bg-emerald-50" },
-                { value: "EN_RETARD", label: "⚠️ En retard", cls: "text-amber-700 border-amber-400 bg-amber-50" },
+                { value: "A_JOUR", label: "À jour", cls: "text-emerald-700 border-emerald-400 bg-emerald-50" },
+                { value: "EN_RETARD", label: " En retard", cls: "text-amber-700 border-amber-400 bg-amber-50" },
               ].map((s) => (
                 <button
                   key={s.value}

@@ -415,7 +415,7 @@ export default function HomePage() {
             </span>
           </div>
           <p className="text-xs">
-            © 2026 SmartFarming Suite. Tous droits réservés.
+            © 2026 SmartFarming Suite. Tous droits réservés par Yassine GHARBI.
           </p>
           <div className="flex gap-4 text-xs font-semibold">
             <a href="#" className="hover:text-white transition-colors">Confidentialité</a>

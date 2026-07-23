@@ -1,5 +1,4 @@
 // components/FinancesView.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -7,6 +6,7 @@ import { deleteDepenseAction } from "@/actions/depense";
 import { deleteRevenuAction } from "@/actions/revenu";
 import AddDepenseForm from "./AddDepenseForm";
 import AddRevenuForm from "./AddRevenuForm";
+import CommodityPrices from "./CommodityPrices";
 import {
   DollarSign,
   TrendingUp,
@@ -212,10 +212,13 @@ export default function FinancesView({
             </div>
           </div>
           <p className={`text-xs font-medium mt-2 ${solde >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-            {solde > 0 ? '✅ Bénéficiaire' : solde < 0 ? '⚠️ Déficitaire' : '➖ Équilibre'}
+            {solde > 0 ? ' Bénéficiaire' : solde < 0 ? '⚠️ Déficitaire' : '➖ Équilibre'}
           </p>
         </div>
       </div>
+
+      {/* 📊 PRIX DES MATIÈRES PREMIÈRES - AJOUTÉ */}
+      <CommodityPrices />
 
       {/* Main Content */}
       <div className="grid grid-cols-3 gap-6">

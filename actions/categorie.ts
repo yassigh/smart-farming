@@ -1,5 +1,4 @@
 // actions/categorie.ts
-
 "use server";
 
 import { CategorieModel, CreateCategorieInput } from "@/models/categorie";

@@ -11,10 +11,7 @@ export type ActionResponse<T = any> = {
   error?: string;
 };
 
-export async function addDepenseAction(
-  data: CreateDepenseInput,
-  acteurId?: number
-): Promise<ActionResponse> {
+export async function addDepenseAction(data: CreateDepenseInput,acteurId?: number): Promise<ActionResponse> {
   try {
     if (!data.montant || !data.type || !data.fermeId || !data.createdById) {
       return { success: false, error: "Tous les champs obligatoires doivent être remplis." };

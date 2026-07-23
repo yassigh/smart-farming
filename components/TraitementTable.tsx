@@ -1,7 +1,7 @@
-// components/TraitementTable.tsx
+// components/TraitementTable.tsx - Version avec recherche vocale
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { deleteTraitementAction } from "@/actions/animal";
 import {
@@ -22,9 +22,74 @@ import {
   Clock,
   Dog,
   Building2,
-  UserCircle
+  UserCircle,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import { Role } from "@prisma/client";
+
+// ✅ Déclaration des types pour Web Speech API
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+  interpretation: any;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onaudioend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onaudiostart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
+  onnomatch: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onsoundend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onsoundstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onspeechend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onspeechstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  abort(): void;
+  start(): void;
+  stop(): void;
+}
+
+interface SpeechRecognitionConstructor {
+  new(): SpeechRecognition;
+}
+
+// Déclaration globale pour window
+declare global {
+  interface Window {
+    SpeechRecognition: SpeechRecognitionConstructor;
+    webkitSpeechRecognition: SpeechRecognitionConstructor;
+  }
+}
 
 interface Traitement {
   id: number;
@@ -67,12 +132,192 @@ function formatDate(d: Date) {
   });
 }
 
+// ✅ Composant de recherche vocale
+interface VoiceSearchProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  onListeningChange?: (isListening: boolean) => void;
+}
+
+function VoiceSearch({ value, onChange, placeholder = "Rechercher...", onListeningChange }: VoiceSearchProps) {
+  const [isListening, setIsListening] = useState(false);
+  const [isSupported, setIsSupported] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const hasSpeechRecognition = typeof window !== 'undefined' && 
+      (!!window.SpeechRecognition || !!window.webkitSpeechRecognition);
+
+    if (!hasSpeechRecognition) {
+      setIsSupported(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+    
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = 'fr-FR';
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.maxAlternatives = 1;
+
+      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+        const transcript = event.results[0][0].transcript;
+        onChange(transcript);
+        if (inputRef.current) {
+          inputRef.current.value = transcript;
+        }
+      };
+
+      recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+        console.error('Erreur de reconnaissance vocale:', event.error);
+        let errorMessage = 'Erreur de reconnaissance';
+        if (event.error === 'not-allowed') {
+          errorMessage = '🎤 Accès au microphone refusé';
+        } else if (event.error === 'no-speech') {
+          errorMessage = '🎤 Aucune parole détectée';
+        } else if (event.error === 'audio-capture') {
+          errorMessage = '🎤 Aucun microphone trouvé';
+        }
+        setError(errorMessage);
+        setIsListening(false);
+        if (onListeningChange) onListeningChange(false);
+        
+        setTimeout(() => setError(null), 3000);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+        if (onListeningChange) onListeningChange(false);
+      };
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+        setError(null);
+        if (onListeningChange) onListeningChange(true);
+      };
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch (e) {
+          // Ignorer les erreurs d'abort
+        }
+      }
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error('Erreur lors de l\'arrêt:', e);
+        }
+      }
+      setIsListening(false);
+      if (onListeningChange) onListeningChange(false);
+    } else {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        } catch (e) {
+          console.error('Erreur lors du démarrage:', e);
+          setError('🎤 Impossible de démarrer le microphone');
+          setTimeout(() => setError(null), 3000);
+        }
+      } else {
+        setError('🎤 Reconnaissance vocale non disponible');
+        setTimeout(() => setError(null), 3000);
+      }
+    }
+  };
+
+  if (!isSupported) {
+    return (
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3C6C5F]/40" />
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="pl-10 pr-4 py-2.5 rounded-xl border-2 border-[#FFC490]/30 bg-[#FAFAFA] text-sm text-[#29453E] placeholder:text-[#29453E]/40 focus:outline-none focus:border-[#3C6C5F] focus:ring-4 focus:ring-[#3C6C5F]/10 transition-all w-full sm:w-48 focus:w-60"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3C6C5F]/40" />
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder={isListening ? "🎤 Écoute en cours..." : error || placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={isListening}
+          className={`pl-10 pr-12 py-2.5 rounded-xl border-2 transition-all w-full sm:w-48 focus:w-60 text-sm text-[#29453E] placeholder:text-[#29453E]/40 focus:outline-none focus:ring-4 ${
+            isListening 
+              ? 'border-[#3C6C5F] ring-4 ring-[#3C6C5F]/20 bg-[#DDF3E8]' 
+              : error 
+                ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200' 
+                : 'border-[#FFC490]/30 bg-[#FAFAFA] focus:border-[#3C6C5F] focus:ring-[#3C6C5F]/10'
+          }`}
+        />
+        <button
+          onClick={toggleListening}
+          className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-xl transition-all duration-300 ${
+            isListening
+              ? 'bg-[#3C6C5F] text-white animate-pulse shadow-lg shadow-[#3C6C5F]/30'
+              : error
+                ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                : 'bg-[#FFF3DA] text-[#3C6C5F] hover:bg-[#FFC490]/30 hover:scale-110'
+          }`}
+          title={isListening ? "Arrêter l'écoute" : "Recherche vocale"}
+        >
+          {isListening ? <Mic size={18} /> : <Mic size={18} />}
+        </button>
+      </div>
+      
+      {isListening && (
+        <div className="absolute -bottom-6 left-0 right-0 flex items-center justify-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#3C6C5F] animate-bounce" style={{ animationDelay: '0ms' }}></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#3C6C5F] animate-bounce" style={{ animationDelay: '150ms' }}></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#3C6C5F] animate-bounce" style={{ animationDelay: '300ms' }}></span>
+          <span className="text-[10px] font-semibold text-[#3C6C5F]/70 ml-1">Écoute...</span>
+        </div>
+      )}
+      
+      {error && !isListening && (
+        <div className="absolute -bottom-6 left-0 right-0 text-[10px] font-semibold text-red-600 text-center">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TraitementTable({ user, initialTraitements }: TraitementTableProps) {
   const [traitements, setTraitements] = useState<Traitement[]>(initialTraitements || []);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
 
   const canManage = user?.role === Role.ADMIN || user?.role === Role.VETERINAIRE;
   const ITEMS_PER_PAGE = 8;
@@ -99,7 +344,9 @@ export default function TraitementTable({ user, initialTraitements }: Traitement
       traitement.animal.type + " " +
       traitement.description + " " +
       traitement.veterinaire.prenom + " " +
-      traitement.veterinaire.nom
+      traitement.veterinaire.nom + " " +
+      (traitement.dosage || "") + " " +
+      (traitement.observation || "")
     )
       .toLowerCase()
       .includes(search.toLowerCase())
@@ -156,19 +403,13 @@ export default function TraitementTable({ user, initialTraitements }: Traitement
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3C6C5F]/40" />
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-10 pr-4 py-2.5 rounded-xl border-2 border-[#FFC490]/30 bg-[#FAFAFA] text-sm text-[#29453E] placeholder:text-[#29453E]/40 focus:outline-none focus:border-[#3C6C5F] focus:ring-4 focus:ring-[#3C6C5F]/10 transition-all w-full sm:w-48 focus:w-60"
-              />
-            </div>
+            {/* ✅ Recherche avec voix */}
+            <VoiceSearch
+              value={search}
+              onChange={setSearch}
+              placeholder="Rechercher par médicament, animal, description..."
+              onListeningChange={setIsVoiceListening}
+            />
 
             {canManage && (
               <Link
@@ -181,6 +422,19 @@ export default function TraitementTable({ user, initialTraitements }: Traitement
             )}
           </div>
         </div>
+
+        {/* ✅ Indicateur de recherche vocale active */}
+        {isVoiceListening && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-[#3C6C5F] bg-[#DDF3E8] px-4 py-2 rounded-xl border border-[#3C6C5F]/20 animate-pulse">
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#3C6C5F] animate-ping"></span>
+              <span className="w-2 h-2 rounded-full bg-[#3C6C5F] animate-ping" style={{ animationDelay: '0.2s' }}></span>
+              <span className="w-2 h-2 rounded-full bg-[#3C6C5F] animate-ping" style={{ animationDelay: '0.4s' }}></span>
+            </div>
+            <span className="font-semibold">🎤 Recherche vocale active - Parlez maintenant...</span>
+            <span className="text-xs text-[#3C6C5F]/60">(Cliquez sur le micro pour arrêter)</span>
+          </div>
+        )}
       </div>
 
       {/* ERROR */}
@@ -321,6 +575,17 @@ export default function TraitementTable({ user, initialTraitements }: Traitement
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+        
+        .animate-bounce {
+          animation: bounce 0.8s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }
